@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="remote_datasource" status="experimental" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+	<name>Remote Datasource</name>
+	<description>A datasource that consumes XML or JSON content.</description>
+	<authors>
+		<author>
+			<name github="symphonycms" symphony="team">Symphony Team</name>
+		</author>
+	</authors>
+	<releases>
+		<release version="1.0" date="2012-03-11" min="2.3">
+			- Initial release
+		</release>
+	</releases>
+</extension>
