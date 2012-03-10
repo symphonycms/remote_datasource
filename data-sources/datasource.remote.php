@@ -156,10 +156,26 @@
 		Editor
 	-------------------------------------------------------------------------*/
 
-		public static function buildEditor(XMLElement $wrapper, array &$errors = array(), array $settings = null) {
+		public static function buildEditor(XMLElement $wrapper, array &$errors = array(), array $settings = null, $handle = null) {
 			if(!is_null($handle)) {
-				$instance = DatasourceManager::create($handle, array(), false);
 				$cache = new Cacheable(Symphony::Database());
+				$cache_id = md5(
+					$settings[self::getClass()]['url'] .
+					serialize($settings[self::getClass()]['namespaces']) .
+					$settings[self::getClass()]['xpath'] .
+					$settings[self::getClass()]['format']
+				);
+			}
+
+			// If `clear_cache` is set, clear it..
+			if(isset($cache_id) && in_array('clear_cache', Administration::instance()->Page->getContext())) {
+				$cache->forceExpiry($cache_id);
+				Administration::instance()->Page->pageAlert(
+					__('Data source cache cleared at %s.', array(DateTimeObj::getTimeAgo()))
+					. '<a href="' . SYMPHONY_URL . '/blueprints/datasources/" accesskey="a">'
+					. __('View all Data sources')
+					. '</a>'
+					, Alert::SUCCESS);
 			}
 
 			$fieldset = new XMLElement('fieldset');
@@ -390,7 +406,9 @@
 			}
 			self::injectNamespaces($namespaces, $template);
 
-			$timeout = isset($settings[self::getClass()]['timeout']) ? (int)$settings[self::getClass()]['timeout'] : 6;
+			$timeout = isset($settings[self::getClass()]['timeout'])
+				? (int)$settings[self::getClass()]['timeout']
+				: 6;
 
 			return sprintf($template,
 				$params['rootelement'], // rootelement
@@ -450,7 +468,7 @@
 				$xsl = $stylesheet->generate(true);
 
 				// Check for an existing Cache for this Datasource
-				$cache_id = md5($this->dsParamURL . serialize($this->dsParamFILTERS) . $this->dsParamXPATH . $this->dsParamFORMAT);
+				$cache_id = md5($this->dsParamURL . serialize($this->dsParamNAMESPACES) . $this->dsParamXPATH . $this->dsParamFORMAT);
 				$cache = new Cacheable(Symphony::Database());
 
 				$cachedData = $cache->check($cache_id);
