@@ -26,7 +26,7 @@
 		public function settings() {
 			$settings = array();
 
-			$settings[self::getClass()]['namespace'] = $this->dsParamFILTERS;
+			$settings[self::getClass()]['namespace'] = $this->dsParamNAMESPACES;
 			$settings[self::getClass()]['url'] = $this->dsParamURL;
 			$settings[self::getClass()]['xpath'] = $this->dsParamXPATH;
 			$settings[self::getClass()]['cache'] = $this->dsParamCACHE;
@@ -118,14 +118,13 @@
 			$placeholder = '<!-- NAMESPACES -->';
 			$string = 'public $dsParamNAMESPACES = array(' . PHP_EOL;
 
-			foreach($filters as $key => $val){
+			foreach($namespaces as $key => $val){
 				if(trim($val) == '') continue;
-				$string .= "\t\t\t\t'$key' => '" . addslashes($val) . "'," . PHP_EOL;
+				$string .= "\t\t\t'$key' => '" . addslashes($val) . "'," . PHP_EOL;
 			}
 
 			$string .= "\t\t);" . PHP_EOL . "\t\t" . $placeholder;
-
-			$shell = str_replace($placeholder, trim($string), $shell);
+			$template = str_replace($placeholder, trim($string), $template);
 		}
 
 		/**
@@ -209,6 +208,8 @@
 
 			$ol = new XMLElement('ol');
 			$ol->setAttribute('class', 'filters-duplicator');
+			$ol->setAttribute('data-add', __('Add namespace'));
+			$ol->setAttribute('data-remove', __('Remove namespace'));
 
 			if(is_array($settings[self::getClass()]['namespace']) && !empty($settings[self::getClass()]['namespace'])){
 				$ii = 0;
@@ -222,16 +223,23 @@
 					}
 
 					$li = new XMLElement('li');
-					$li->appendChild(new XMLElement('h4', 'Namespace'));
+					$li->setAttribute('class', 'instance');
+					$header = new XMLElement('header');
+					$header->appendChild(
+						new XMLElement('h4', __('Namespace'))
+					);
+					$li->appendChild($header);
 
 					$group = new XMLElement('div');
-					$group->setAttribute('class', 'group');
+					$group->setAttribute('class', 'two columns');
 
 					$label = Widget::Label(__('Name'));
+					$label->setAttribute('class', 'column');
 					$label->appendChild(Widget::Input("fields[" . self::getClass() . "][namespace][$ii][name]", General::sanitize($name)));
 					$group->appendChild($label);
 
 					$label = Widget::Label(__('URI'));
+					$label->setAttribute('class', 'column');
 					$label->appendChild(Widget::Input("fields[" . self::getClass() . "][namespace][$ii][uri]", General::sanitize($uri)));
 					$group->appendChild($label);
 
@@ -243,16 +251,22 @@
 
 			$li = new XMLElement('li');
 			$li->setAttribute('class', 'template');
-			$li->appendChild(new XMLElement('h4', __('Namespace')));
+			$header = new XMLElement('header');
+			$header->appendChild(
+				new XMLElement('h4', __('Namespace'))
+			);
+			$li->appendChild($header);
 
 			$group = new XMLElement('div');
-			$group->setAttribute('class', 'group');
+			$group->setAttribute('class', 'two columns');
 
 			$label = Widget::Label(__('Name'));
+			$label->setAttribute('class', 'column');
 			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespace][-1][name]'));
 			$group->appendChild($label);
 
 			$label = Widget::Label(__('URI'));
+			$label->setAttribute('class', 'column');
 			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespace][-1][uri]'));
 			$group->appendChild($label);
 
@@ -369,8 +383,8 @@
 			}
 
 			$namespaces = array();
-			if(is_array($parameters[self::getClass()]['namespace'])) {
-				foreach($parameters[self::getClass()]['namespace'] as $index => $data) {
+			if(is_array($settings[self::getClass()]['namespace'])) {
+				foreach($settings[self::getClass()]['namespace'] as $index => $data) {
 					$namespaces[$data['name']] = $data['uri'];
 				}
 			}
@@ -420,8 +434,8 @@
 				$instruction = new XMLElement('xsl:copy-of');
 
 				// Namespaces
-				if(isset($this->dsParamFILTERS) && is_array($this->dsParamFILTERS)){
-					foreach($this->dsParamFILTERS as $name => $uri) {
+				if(isset($this->dsParamNAMESPACES) && is_array($this->dsParamNAMESPACES)){
+					foreach($this->dsParamNAMESPACES as $name => $uri) {
 						$instruction->setAttribute('xmlns' . ($name ? ":{$name}" : NULL), $uri);
 					}
 				}
@@ -597,8 +611,10 @@
 				$result->appendChild(new XMLElement('error', $e->getMessage()));
 			}
 
+			if($this->_force_empty_result) $result = $this->emptyXMLSet();
+
 			return $result;
 		}
 	}
 
-	return 'DatasourceRemote';
+	return 'RemoteDatasource';
