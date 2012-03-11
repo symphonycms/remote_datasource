@@ -184,12 +184,13 @@
 
 			// URL
 			$group = new XMLElement('div');
-			$group->setAttribute('class', 'group offset');
+			$group->setAttribute('class', 'two columns');
 
 			$label = Widget::Label(__('URL'));
+			$label->setAttribute('class', 'primary column');
 			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][url]', General::sanitize($settings[self::getClass()]['url']), 'text', array('placeholder' => 'http://')));
 			if(isset($errors[self::getClass()]['url'])) {
-				$group->appendChild(Widget::wrapFormElementWithError($label, $errors[self::getClass()]['url']));
+				$group->appendChild(Widget::Error($label, $errors[self::getClass()]['url']));
 			}
 			else {
 				$group->appendChild($label);
@@ -204,13 +205,14 @@
 			$label->appendChild($p);
 
 			$label = Widget::Label(__('Format'));
+			$label->setAttribute('class', 'secondary column');
 			$label->appendChild(
 				Widget::Select('fields[' . self::getClass() . '][format]', array(
 					array('xml', $settings[self::getClass()]['format'] == 'xml', 'XML'),
 					array('json', $settings[self::getClass()]['format'] == 'json', 'JSON')
 				))
 			);
-			if(isset($errors[self::getClass()]['format'])) $group->appendChild(Widget::wrapFormElementWithError($label, $errors[self::getClass()]['format']));
+			if(isset($errors[self::getClass()]['format'])) $group->appendChild(Widget::Error($label, $errors[self::getClass()]['format']));
 			else $group->appendChild($label);
 
 			$fieldset->appendChild($group);
@@ -299,7 +301,7 @@
 			// Included Elements
 			$label = Widget::Label(__('Included Elements'));
 			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][xpath]', General::sanitize($settings[self::getClass()]['xpath'])));
-			if(isset($errors[self::getClass()]['xpath'])) $fieldset->appendChild(Widget::wrapFormElementWithError($label, $errors[self::getClass()]['xpath']));
+			if(isset($errors[self::getClass()]['xpath'])) $fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['xpath']));
 			else $fieldset->appendChild($label);
 
 			$p = new XMLElement('p', __('Use an XPath expression to select which elements from the source XML to include.'));
@@ -310,7 +312,7 @@
 			$label = Widget::Label();
 			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)max(1, intval($settings[self::getClass()]['cache'])), NULL, array('size' => '6'));
 			$label->setValue(__('Update cached result every %s minutes', array($input->generate(false))));
-			if(isset($errors[self::getClass()]['cache'])) $fieldset->appendChild(Widget::wrapFormElementWithError($label, $errors[self::getClass()]['cache']));
+			if(isset($errors[self::getClass()]['cache'])) $fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
 			else $fieldset->appendChild($label);
 
 			// Check for existing Cache objects
