@@ -186,16 +186,9 @@
 			$group = new XMLElement('div');
 			$group->setAttribute('class', 'two columns');
 
+			$primary = new XMLElement('div', null, array('class' => 'primary column'));
 			$label = Widget::Label(__('URL'));
-			$label->setAttribute('class', 'primary column');
 			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][url]', General::sanitize($settings[self::getClass()]['url']), 'text', array('placeholder' => 'http://')));
-			if(isset($errors[self::getClass()]['url'])) {
-				$group->appendChild(Widget::Error($label, $errors[self::getClass()]['url']));
-			}
-			else {
-				$group->appendChild($label);
-			}
-
 			$p = new XMLElement('p',
 				__('Use %s syntax to specify dynamic portions of the URL.', array(
 					'<code>{' . __('$param') . '}</code>'
@@ -204,17 +197,31 @@
 			$p->setAttribute('class', 'help');
 			$label->appendChild($p);
 
+			if(isset($errors[self::getClass()]['url'])) {
+				$primary->appendChild(Widget::Error($label, $errors[self::getClass()]['url']));
+			}
+			else {
+				$primary->appendChild($label);
+			}
+
+			$group->appendChild($primary);
+
+			$secondary = new XMLElement('div', null, array('class' => 'secondary column'));
 			$label = Widget::Label(__('Format'));
-			$label->setAttribute('class', 'secondary column');
 			$label->appendChild(
 				Widget::Select('fields[' . self::getClass() . '][format]', array(
 					array('xml', $settings[self::getClass()]['format'] == 'xml', 'XML'),
 					array('json', $settings[self::getClass()]['format'] == 'json', 'JSON')
 				))
 			);
-			if(isset($errors[self::getClass()]['format'])) $group->appendChild(Widget::Error($label, $errors[self::getClass()]['format']));
-			else $group->appendChild($label);
+			if(isset($errors[self::getClass()]['format'])) {
+				$secondary->appendChild(Widget::Error($label, $errors[self::getClass()]['format']));
+			}
+			else {
+				$secondary->appendChild($label);
+			}
 
+			$group->appendChild($secondary);
 			$fieldset->appendChild($group);
 
 			// Namespaces
@@ -333,16 +340,10 @@
 			if(trim($settings[self::getClass()]['url']) == '') {
 				$errors[self::getClass()]['url'] = __('This is a required field');
 			}
-
-			// Use the TIMEOUT that was specified by the user for a real world indication
-			$timeout = isset($settings[self::getClass()]['timeout'])
-				? (int)$settings[self::getClass()]['timeout']
-				: 6;
-
 			// If there is a parameter in the URL, we can't validate the existence of the URL
 			// as we don't have the environment details of where this datasource is going
 			// to be executed.
-			if(!preg_match('@{([^}]+)}@i', $settings[self::getClass()]['url'])) {
+			else if(!preg_match('@{([^}]+)}@i', $settings[self::getClass()]['url'])) {
 				$valid_url = self::isValidURL($settings[self::getClass()]['url'], $timeout, $error);
 
 				if(is_array($valid_url)) {
@@ -352,6 +353,11 @@
 					$errors[self::getClass()]['url'] = $error;
 				}
 			}
+
+			// Use the TIMEOUT that was specified by the user for a real world indication
+			$timeout = isset($settings[self::getClass()]['timeout'])
+				? (int)$settings[self::getClass()]['timeout']
+				: 6;
 
 			if(trim($settings[self::getClass()]['xpath']) == '') {
 				$errors[self::getClass()]['xpath'] = __('This is a required field');
@@ -368,18 +374,20 @@
 		}
 
 		public static function prepare(array $settings, array $params, $template) {
+			$settings = $settings[self::getClass()];
+
 			// Automatically detect namespaces
 			if(!is_null(self::$url_result)) {
 				preg_match_all('/xmlns:([a-z][a-z-0-9\-]*)="([^\"]+)"/i', self::$url_result, $matches);
 
-				if(!is_array($settings[self::getClass()]['namespace'])) {
-					$settings[self::getClass()]['namespace'] = array();
+				if(!is_array($settings['namespace'])) {
+					$settings['namespace'] = array();
 				}
 
 				if (isset($matches[2][0])) {
 					$detected_namespaces = array();
 
-					foreach ($settings[self::getClass()]['namespace'] as $index => $namespace) {
+					foreach ($settings['namespace'] as $index => $namespace) {
 						$detected_namespaces[] = $namespace['name'];
 						$detected_namespaces[] = $namespace['uri'];
 					}
@@ -392,7 +400,7 @@
 						$detected_namespaces[] = $name;
 						$detected_namespaces[] = $uri;
 
-						$settings[self::getClass()]['namespace'][] = array(
+						$settings['namespace'][] = array(
 							'name' => $name,
 							'uri' => $uri
 						);
@@ -401,23 +409,23 @@
 			}
 
 			$namespaces = array();
-			if(is_array($settings[self::getClass()]['namespace'])) {
-				foreach($settings[self::getClass()]['namespace'] as $index => $data) {
+			if(is_array($settings['namespace'])) {
+				foreach($settings['namespace'] as $index => $data) {
 					$namespaces[$data['name']] = $data['uri'];
 				}
 			}
 			self::injectNamespaces($namespaces, $template);
 
-			$timeout = isset($settings[self::getClass()]['timeout'])
-				? (int)$settings[self::getClass()]['timeout']
+			$timeout = isset($settings['timeout'])
+				? (int)$settings['timeout']
 				: 6;
 
 			return sprintf($template,
 				$params['rootelement'], // rootelement
-				$settings[self::getClass()]['url'], // url
-				$settings[self::getClass()]['format'], // format
-				$settings[self::getClass()]['xpath'], // xpath
-				$settings[self::getClass()]['cache'], // cache
+				$settings['url'], // url
+				$settings['format'], // format
+				$settings['xpath'], // xpath
+				$settings['cache'], // cache
 				$timeout// timeout
 			);
 		}
@@ -426,7 +434,7 @@
 		Execution
 	-------------------------------------------------------------------------*/
 
-		public function grab(array $param_pool) {
+		public function grab(array &$param_pool = null) {
 			$result = new XMLElement($this->dsParamROOTELEMENT);
 
 			try {
