@@ -28,7 +28,7 @@
 
 			$settings[self::getClass()]['namespace'] = $this->dsParamNAMESPACES;
 			$settings[self::getClass()]['url'] = $this->dsParamURL;
-			$settings[self::getClass()]['xpath'] = $this->dsParamXPATH;
+			$settings[self::getClass()]['xpath'] = isset($this->dsParamXPATH) ? $this->dsParamXPATH : '/';
 			$settings[self::getClass()]['cache'] = $this->dsParamCACHE;
 			$settings[self::getClass()]['format'] = $this->dsParamFORMAT;
 			$settings[self::getClass()]['timeout'] = isset($this->dsParamTIMEOUT) ? $this->dsParamTIMEOUT : 6;
@@ -276,6 +276,7 @@
 
 			$li = new XMLElement('li');
 			$li->setAttribute('class', 'template');
+			$li->setAttribute('data-type', 'namespace');
 			$header = new XMLElement('header');
 			$header->appendChild(
 				new XMLElement('h4', __('Namespace'))
@@ -337,6 +338,11 @@
 		}
 
 		public static function validate(array &$settings, array &$errors) {
+			// Use the TIMEOUT that was specified by the user for a real world indication
+			$timeout = isset($settings[self::getClass()]['timeout'])
+				? (int)$settings[self::getClass()]['timeout']
+				: 6;
+
 			if(trim($settings[self::getClass()]['url']) == '') {
 				$errors[self::getClass()]['url'] = __('This is a required field');
 			}
@@ -344,7 +350,7 @@
 			// as we don't have the environment details of where this datasource is going
 			// to be executed.
 			else if(!preg_match('@{([^}]+)}@i', $settings[self::getClass()]['url'])) {
-				$valid_url = self::isValidURL($settings[self::getClass()]['url'], $timeout, $error);
+				$valid_url = self::isValidURL($settings[self::getClass()]['url'], $timeout, true);
 
 				if(is_array($valid_url)) {
 					self::$url_result = $valid_url['data'];
@@ -353,11 +359,6 @@
 					$errors[self::getClass()]['url'] = $error;
 				}
 			}
-
-			// Use the TIMEOUT that was specified by the user for a real world indication
-			$timeout = isset($settings[self::getClass()]['timeout'])
-				? (int)$settings[self::getClass()]['timeout']
-				: 6;
 
 			if(trim($settings[self::getClass()]['xpath']) == '') {
 				$errors[self::getClass()]['xpath'] = __('This is a required field');
