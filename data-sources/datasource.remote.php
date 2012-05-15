@@ -64,6 +64,7 @@
 		 * before the `$timeout`. If it does not, an error message will be
 		 * returned, otherwise true.
 		 *
+		 * @todo This function is a bit messy, could be revisited.
 		 * @param string $url
 		 * @param integer $timeout
 		 *  If not provided, this will default to 6 seconds
@@ -71,11 +72,14 @@
 		 *  Defaults to false, but when set to true, this function will use the
 		 *  `Gateway` class to attempt to validate the URL's existence and it
 		 *  returns before the `$timeout`
+		 * @param string $format
+		 *  The format that the URL will return, either JSON or XML. Defaults
+		 *  to 'xml' which will send the appropriate ACCEPTs header.
 		 * @return string|array
 		 *  Returns an array with the 'data' if it is a valid URL, otherwise a string
 		 *  containing an error message.
 		 */
-		public static function isValidURL($url, $timeout = 6, $fetch_URL = false) {
+		public static function isValidURL($url, $timeout = 6, $format = 'xml', $fetch_URL = false) {
 			// Check that URL was provided
 			if(trim($url) == '') {
 				return __('This is a required field');
@@ -85,8 +89,16 @@
 				$gateway = new Gateway;
 				$gateway->init($url);
 				$gateway->setopt('TIMEOUT', $timeout);
-				$data = $gateway->exec();
 
+				// Set the approtiate Accept: headers depending on the format of the URL.
+				if($format == 'xml') {
+					$gateway->setopt('HTTPHEADER', array('Accept: text/xml, */*'));
+				}
+				else if($format == 'json') {
+					$gateway->setopt('HTTPHEADER', array('Accept: application/json, */*'));
+				}
+
+				$data = $gateway->exec();
 				$info = $gateway->getInfoLast();
 
 				// 28 is CURLE_OPERATION_TIMEOUTED
@@ -350,13 +362,15 @@
 			// as we don't have the environment details of where this datasource is going
 			// to be executed.
 			else if(!preg_match('@{([^}]+)}@i', $settings[self::getClass()]['url'])) {
-				$valid_url = self::isValidURL($settings[self::getClass()]['url'], $timeout, true);
+				$valid_url = self::isValidURL($settings[self::getClass()]['url'], $timeout, $settings[self::getClass()]['format'], true);
 
+				// If url was valid, `isValidURL` will return an array of data
 				if(is_array($valid_url)) {
 					self::$url_result = $valid_url['data'];
 				}
+				// Otherwise it'll return a string, which is an error
 				else {
-					$errors[self::getClass()]['url'] = $error;
+					$errors[self::getClass()]['url'] = $valid_url;
 				}
 			}
 
