@@ -534,7 +534,7 @@
 				$cache = new Cacheable(Symphony::Database());
 				$cachedData = $cache->check($cache_id);
 				$writeToCache = false;
-				$valid = true;
+				$isCacheValid = true;
 				$creation = DateTimeObj::get('c');
 
 				// Execute if the cache doesn't exist, or if it is old.
@@ -649,7 +649,7 @@
 				// If `$writeToCache` is set to false, invalidate the old cache if it existed.
 				if(is_array($cachedData) && !empty($cachedData) && $writeToCache === false) {
 					$data = trim($cachedData['data']);
-					$valid = false;
+					$isCacheValid = false;
 					$creation = DateTimeObj::get('c', $cachedData['creation']);
 
 					if(empty($data)) $this->_force_empty_result = true;
@@ -681,7 +681,8 @@
 						if($writeToCache) $cache->write($cache_id, $data, $this->dsParamCACHE);
 
 						$result->setValue(PHP_EOL . str_repeat("\t", 2) . preg_replace('/([\r\n]+)/', "$1\t", $ret));
-						$result->setAttribute('status', ($valid === true ? 'fresh' : 'stale'));
+						$result->setAttribute('status', ($isCacheValid === true ? 'fresh' : 'stale'));
+						$result->setAttribute('cache-id', $cache_id);
 						$result->setAttribute('creation', $creation);
 					}
 				}
