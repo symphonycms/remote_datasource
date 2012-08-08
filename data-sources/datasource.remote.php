@@ -26,10 +26,10 @@
 		public function settings() {
 			$settings = array();
 
-			$settings[self::getClass()]['namespace'] = $this->dsParamNAMESPACES;
+			$settings[self::getClass()]['namespaces'] = $this->dsParamNAMESPACES;
 			$settings[self::getClass()]['url'] = $this->dsParamURL;
 			$settings[self::getClass()]['xpath'] = isset($this->dsParamXPATH) ? $this->dsParamXPATH : '/';
-			$settings[self::getClass()]['cache'] = $this->dsParamCACHE;
+			$settings[self::getClass()]['cache'] = isset($this->dsParamCACHE) ? $this->dsParamCACHE : 30;
 			$settings[self::getClass()]['format'] = $this->dsParamFORMAT;
 			$settings[self::getClass()]['timeout'] = isset($this->dsParamTIMEOUT) ? $this->dsParamTIMEOUT : 6;
 
