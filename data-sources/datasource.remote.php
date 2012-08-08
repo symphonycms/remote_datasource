@@ -30,7 +30,7 @@
 			$settings[self::getClass()]['url'] = $this->dsParamURL;
 			$settings[self::getClass()]['xpath'] = isset($this->dsParamXPATH) ? $this->dsParamXPATH : '/';
 			$settings[self::getClass()]['cache'] = isset($this->dsParamCACHE) ? $this->dsParamCACHE : 30;
-			$settings[self::getClass()]['format'] = $this->dsParamFORMAT;
+			$settings[self::getClass()]['format'] = isset($this->dsParamFORMAT) ? $this->dsParamFORMAT : 'xml';
 			$settings[self::getClass()]['timeout'] = isset($this->dsParamTIMEOUT) ? $this->dsParamTIMEOUT : 6;
 
 			return $settings;
@@ -140,6 +140,37 @@
 		}
 
 		/**
+		 * Given either the Datasource object or an array of settings for a
+		 * Remote Datasource, this function will return it's cache ID, which
+		 * is stored in tbl_cache.
+		 *
+		 * @since 1.1
+		 * @param array|object $settings
+		 */
+		public static function buildCacheID($settings) {
+			$cache_id = null;
+
+			if(is_object($settings)) {
+				$cache_id = md5(
+					$settings->dsParamURL .
+					serialize($settings->dsParamNAMESPACES) .
+					$settings->dsParamXPATH .
+					$settings->dsParamFORMAT
+				);
+			}
+			else if(is_array($settings)) {
+				$cache_id = md5(
+					$settings['url'] .
+					serialize($settings['namespaces']) .
+					$settings['xpath'] .
+					$settings['format']
+				);
+			}
+
+			return $cache_id;
+		}
+
+		/**
 		 * Helper function to build Cache information block
 		 *
 		 * @param XMLElement $wrapper
@@ -148,6 +179,7 @@
 		 */
 		public static function buildCacheInformation(XMLElement $wrapper, Cacheable $cache, $cache_id) {
 			$cachedData = $cache->check($cache_id);
+
 			if(is_array($cachedData) && !empty($cachedData) && (time() < $cachedData['expiry'])) {
 				$a = Widget::Anchor(__('Clear now'), SYMPHONY_URL . getCurrentPage() . 'clear_cache/');
 				$wrapper->appendChild(
@@ -171,12 +203,7 @@
 		public static function buildEditor(XMLElement $wrapper, array &$errors = array(), array $settings = null, $handle = null) {
 			if(!is_null($handle)) {
 				$cache = new Cacheable(Symphony::Database());
-				$cache_id = md5(
-					$settings[self::getClass()]['url'] .
-					serialize($settings[self::getClass()]['namespaces']) .
-					$settings[self::getClass()]['xpath'] .
-					$settings[self::getClass()]['format']
-				);
+				$cache_id = self::buildCacheID($settings[self::getClass()]);
 			}
 
 			// If `clear_cache` is set, clear it..
@@ -248,9 +275,9 @@
 			$ol->setAttribute('data-add', __('Add namespace'));
 			$ol->setAttribute('data-remove', __('Remove namespace'));
 
-			if(is_array($settings[self::getClass()]['namespace']) && !empty($settings[self::getClass()]['namespace'])){
+			if(is_array($settings[self::getClass()]['namespaces']) && !empty($settings[self::getClass()]['namespaces'])){
 				$ii = 0;
-				foreach($settings[self::getClass()]['namespace'] as $name => $uri) {
+				foreach($settings[self::getClass()]['namespaces'] as $name => $uri) {
 					// Namespaces get saved to the file as $name => $uri, however in
 					// the $_POST they are represented as $index => array. This loop
 					// patches the difference.
@@ -272,12 +299,12 @@
 
 					$label = Widget::Label(__('Name'));
 					$label->setAttribute('class', 'column');
-					$label->appendChild(Widget::Input("fields[" . self::getClass() . "][namespace][$ii][name]", General::sanitize($name)));
+					$label->appendChild(Widget::Input("fields[" . self::getClass() . "][namespaces][$ii][name]", General::sanitize($name)));
 					$group->appendChild($label);
 
 					$label = Widget::Label(__('URI'));
 					$label->setAttribute('class', 'column');
-					$label->appendChild(Widget::Input("fields[" . self::getClass() . "][namespace][$ii][uri]", General::sanitize($uri)));
+					$label->appendChild(Widget::Input("fields[" . self::getClass() . "][namespaces][$ii][uri]", General::sanitize($uri)));
 					$group->appendChild($label);
 
 					$li->appendChild($group);
@@ -300,12 +327,12 @@
 
 			$label = Widget::Label(__('Name'));
 			$label->setAttribute('class', 'column');
-			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespace][-1][name]'));
+			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespaces][-1][name]'));
 			$group->appendChild($label);
 
 			$label = Widget::Label(__('URI'));
 			$label->setAttribute('class', 'column');
-			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespace][-1][uri]'));
+			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespaces][-1][uri]'));
 			$group->appendChild($label);
 
 			$li->appendChild($group);
@@ -320,7 +347,7 @@
 
 			// Included Elements
 			$label = Widget::Label(__('Included Elements'));
-			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][xpath]', General::sanitize($settings[self::getClass()]['xpath'])));
+			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][xpath]', $settings[self::getClass()]['xpath']));
 			if(isset($errors[self::getClass()]['xpath'])) $fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['xpath']));
 			else $fieldset->appendChild($label);
 
@@ -355,6 +382,20 @@
 				? (int)$settings[self::getClass()]['timeout']
 				: 6;
 
+			// Check cache value is numeric and greater than 1
+			if(!is_numeric($settings[self::getClass()]['cache'])) {
+				$errors[self::getClass()]['cache'] = __('Must be a valid number');
+			}
+			else if($settings[self::getClass()]['cache'] < 1) {
+				$errors[self::getClass()]['cache'] = __('Must be greater than zero');
+			}
+
+			// Make sure that XPath has been filled out
+			if(trim($settings[self::getClass()]['xpath']) == '') {
+				$errors[self::getClass()]['xpath'] = __('This is a required field');
+			}
+
+			// Ensure we have a URL
 			if(trim($settings[self::getClass()]['url']) == '') {
 				$errors[self::getClass()]['url'] = __('This is a required field');
 			}
@@ -374,17 +415,6 @@
 				}
 			}
 
-			if(trim($settings[self::getClass()]['xpath']) == '') {
-				$errors[self::getClass()]['xpath'] = __('This is a required field');
-			}
-
-			if(!is_numeric($settings[self::getClass()]['cache'])) {
-				$errors[self::getClass()]['cache'] = __('Must be a valid number');
-			}
-			else if($settings[self::getClass()]['cache'] < 1) {
-				$errors[self::getClass()]['cache'] = __('Must be greater than zero');
-			}
-
 			return empty($errors[self::getClass()]);
 		}
 
@@ -395,14 +425,14 @@
 			if(!is_null(self::$url_result)) {
 				preg_match_all('/xmlns:([a-z][a-z-0-9\-]*)="([^\"]+)"/i', self::$url_result, $matches);
 
-				if(!is_array($settings['namespace'])) {
-					$settings['namespace'] = array();
+				if(!is_array($settings['namespaces'])) {
+					$settings['namespaces'] = array();
 				}
 
 				if (isset($matches[2][0])) {
 					$detected_namespaces = array();
 
-					foreach ($settings['namespace'] as $index => $namespace) {
+					foreach ($settings['namespaces'] as $index => $namespace) {
 						$detected_namespaces[] = $namespace['name'];
 						$detected_namespaces[] = $namespace['uri'];
 					}
@@ -415,7 +445,7 @@
 						$detected_namespaces[] = $name;
 						$detected_namespaces[] = $uri;
 
-						$settings['namespace'][] = array(
+						$settings['namespaces'][] = array(
 							'name' => $name,
 							'uri' => $uri
 						);
@@ -424,8 +454,8 @@
 			}
 
 			$namespaces = array();
-			if(is_array($settings['namespace'])) {
-				foreach($settings['namespace'] as $index => $data) {
+			if(is_array($settings['namespaces'])) {
+				foreach($settings['namespaces'] as $index => $data) {
 					$namespaces[$data['name']] = $data['uri'];
 				}
 			}
@@ -434,6 +464,15 @@
 			$timeout = isset($settings['timeout'])
 				? (int)$settings['timeout']
 				: 6;
+
+			// If there is valid data, save it to cache so that it is available
+			// immediately to the frontend
+			if(!is_null(self::$url_result)) {
+				$settings['namespaces'] = $namespaces;
+				$cache = new Cacheable(Symphony::Database());
+				$cache_id = self::buildCacheID($settings);
+				$cache->write($cache_id, self::$url_result, $settings['cache']);
+			}
 
 			return sprintf($template,
 				$params['rootelement'], // rootelement
@@ -460,8 +499,6 @@
 				$this->dsParamURL = $this->parseParamURL($this->dsParamURL);
 
 				if(isset($this->dsParamXPATH)) $this->dsParamXPATH = $this->__processParametersInString($this->dsParamXPATH, $this->_env);
-
-				if(!isset($this->dsParamFORMAT)) $this->dsParamFORMAT = 'xml';
 
 				// Builds a Default Stylesheet to transform the resulting XML with
 				$stylesheet = new XMLElement('xsl:stylesheet');
@@ -493,9 +530,8 @@
 				$xsl = $stylesheet->generate(true);
 
 				// Check for an existing Cache for this Datasource
-				$cache_id = md5($this->dsParamURL . serialize($this->dsParamNAMESPACES) . $this->dsParamXPATH . $this->dsParamFORMAT);
+				$cache_id = self::buildCacheID($this);
 				$cache = new Cacheable(Symphony::Database());
-
 				$cachedData = $cache->check($cache_id);
 				$writeToCache = false;
 				$valid = true;
