@@ -362,7 +362,7 @@
 
 			// Caching
 			$label = Widget::Label();
-			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)max(1, intval($settings[self::getClass()]['cache'])), NULL, array('size' => '6'));
+			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)max(1, intval($settings[self::getClass()]['cache'])), NULL, array('size' => '6', 'type' => 'text'));
 			$label->setValue(__('Update cached result every %s minutes', array($input->generate(false))));
 			if(isset($errors[self::getClass()]['cache'])) $fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
 			else $fieldset->appendChild($label);
