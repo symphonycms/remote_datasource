@@ -251,6 +251,8 @@
 				Widget::Select('fields[' . self::getClass() . '][format]', array(
 					array('xml', $settings[self::getClass()]['format'] == 'xml', 'XML'),
 					array('json', $settings[self::getClass()]['format'] == 'json', 'JSON')
+				), array(
+					'class' => 'picker'
 				))
 			);
 			if(isset($errors[self::getClass()]['format'])) {
@@ -264,7 +266,10 @@
 			$fieldset->appendChild($group);
 
 			// Namespaces
-			$div = new XMLElement('div');
+			$div = new XMLElement('div', false, array(
+				'id' => 'xml',
+				'class' => 'pickable'
+			));
 			$p = new XMLElement('p', __('Namespace Declarations'));
 			$p->appendChild(new XMLElement('i', __('Optional')));
 			$p->setAttribute('class', 'label');
