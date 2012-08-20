@@ -271,7 +271,7 @@
 				'class' => 'pickable'
 			));
 			$p = new XMLElement('p', __('Namespace Declarations'));
-			$p->appendChild(new XMLElement('i', __('Optional')));
+			$p->appendChild(new XMLElement('i', __('Namespaces will automatically be discovered when saving this datasource if it does not include any dynamic portions.')));
 			$p->setAttribute('class', 'label');
 			$div->appendChild($p);
 
@@ -344,10 +344,6 @@
 			$ol->appendChild($li);
 
 			$div->appendChild($ol);
-			$div->appendChild(
-				new XMLElement('p', __('Namespaces will automatically be discovered when saving this datasource if it does not include any dynamic portions.'), array('class' => 'help'))
-			);
-
 			$fieldset->appendChild($div);
 
 			// Included Elements
