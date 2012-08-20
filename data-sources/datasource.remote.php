@@ -251,6 +251,8 @@
 				Widget::Select('fields[' . self::getClass() . '][format]', array(
 					array('xml', $settings[self::getClass()]['format'] == 'xml', 'XML'),
 					array('json', $settings[self::getClass()]['format'] == 'json', 'JSON')
+				), array(
+					'class' => 'picker'
 				))
 			);
 			if(isset($errors[self::getClass()]['format'])) {
@@ -264,9 +266,12 @@
 			$fieldset->appendChild($group);
 
 			// Namespaces
-			$div = new XMLElement('div');
+			$div = new XMLElement('div', false, array(
+				'id' => 'xml',
+				'class' => 'pickable'
+			));
 			$p = new XMLElement('p', __('Namespace Declarations'));
-			$p->appendChild(new XMLElement('i', __('Optional')));
+			$p->appendChild(new XMLElement('i', __('Namespaces will automatically be discovered when saving this datasource if it does not include any dynamic portions.')));
 			$p->setAttribute('class', 'label');
 			$div->appendChild($p);
 
@@ -339,10 +344,6 @@
 			$ol->appendChild($li);
 
 			$div->appendChild($ol);
-			$div->appendChild(
-				new XMLElement('p', __('Namespaces will automatically be discovered when saving this datasource if it does not include any dynamic portions.'), array('class' => 'help'))
-			);
-
 			$fieldset->appendChild($div);
 
 			// Included Elements
@@ -357,7 +358,7 @@
 
 			// Caching
 			$label = Widget::Label();
-			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)max(1, intval($settings[self::getClass()]['cache'])), NULL, array('size' => '6'));
+			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)max(1, intval($settings[self::getClass()]['cache'])), NULL, array('size' => '6', 'type' => 'text'));
 			$label->setValue(__('Update cached result every %s minutes', array($input->generate(false))));
 			if(isset($errors[self::getClass()]['cache'])) $fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
 			else $fieldset->appendChild($label);
