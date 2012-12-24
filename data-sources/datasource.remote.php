@@ -102,7 +102,7 @@
 				$info = $gateway->getInfoLast();
 
 				// 28 is CURLE_OPERATION_TIMEOUTED
-				if($info['curl_error'] == 28) {
+				if(isset($info['curl_error']) && $info['curl_error'] == 28) {
 					return __('Request timed out. %d second limit reached.', array($timeout));
 				}
 				else if($data === false || $info['http_code'] != 200) {
@@ -201,7 +201,7 @@
 	-------------------------------------------------------------------------*/
 
 		public static function buildEditor(XMLElement $wrapper, array &$errors = array(), array $settings = null, $handle = null) {
-			if(!is_null($handle)) {
+			if(!is_null($handle) && isset($settings[self::getClass()])) {
 				$cache = new Cacheable(Symphony::Database());
 				$cache_id = self::buildCacheID($settings[self::getClass()]);
 			}
@@ -227,7 +227,11 @@
 
 			$primary = new XMLElement('div', null, array('class' => 'primary column'));
 			$label = Widget::Label(__('URL'));
-			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][url]', General::sanitize($settings[self::getClass()]['url']), 'text', array('placeholder' => 'http://')));
+			$url = isset($settings[self::getClass()]['url'])
+				? General::sanitize($settings[self::getClass()]['url'])
+				: null;
+
+			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][url]', $url, 'text', array('placeholder' => 'http://')));
 			$p = new XMLElement('p',
 				__('Use %s syntax to specify dynamic portions of the URL.', array(
 					'<code>{' . __('$param') . '}</code>'
@@ -247,10 +251,14 @@
 
 			$secondary = new XMLElement('div', null, array('class' => 'secondary column'));
 			$label = Widget::Label(__('Format'));
+			$format = isset($settings[self::getClass()]['format'])
+				? $settings[self::getClass()]['format']
+				: null;
+
 			$label->appendChild(
 				Widget::Select('fields[' . self::getClass() . '][format]', array(
-					array('xml', $settings[self::getClass()]['format'] == 'xml', 'XML'),
-					array('json', $settings[self::getClass()]['format'] == 'json', 'JSON')
+					array('xml', $format === 'xml', 'XML'),
+					array('json', $format === 'json', 'JSON')
 				))
 			);
 			if(isset($errors[self::getClass()]['format'])) {
@@ -275,7 +283,7 @@
 			$ol->setAttribute('data-add', __('Add namespace'));
 			$ol->setAttribute('data-remove', __('Remove namespace'));
 
-			if(is_array($settings[self::getClass()]['namespaces']) && !empty($settings[self::getClass()]['namespaces'])){
+			if(isset($settings[self::getClass()]) && is_array($settings[self::getClass()]['namespaces']) && !empty($settings[self::getClass()]['namespaces'])){
 				$ii = 0;
 				foreach($settings[self::getClass()]['namespaces'] as $name => $uri) {
 					// Namespaces get saved to the file as $name => $uri, however in
@@ -347,9 +355,19 @@
 
 			// Included Elements
 			$label = Widget::Label(__('Included Elements'));
-			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][xpath]', $settings[self::getClass()]['xpath']));
-			if(isset($errors[self::getClass()]['xpath'])) $fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['xpath']));
-			else $fieldset->appendChild($label);
+			$xpath = isset($settings[self::getClass()]['xpath'])
+				? $settings[self::getClass()]['xpath']
+				: null;
+
+			$label->appendChild(
+				Widget::Input('fields[' . self::getClass() . '][xpath]', $xpath)
+			);
+			if(isset($errors[self::getClass()]['xpath'])) {
+				$fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['xpath']));
+			}
+			else {
+				$fieldset->appendChild($label);
+			}
 
 			$p = new XMLElement('p', __('Use an XPath expression to select which elements from the source XML to include.'));
 			$p->setAttribute('class', 'help');
@@ -357,7 +375,11 @@
 
 			// Caching
 			$label = Widget::Label();
-			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)max(1, intval($settings[self::getClass()]['cache'])), NULL, array('size' => '6'));
+			$cache_time = isset($settings[self::getClass()]['cache'])
+				? max(1, intval($settings[self::getClass()]['cache']))
+				: 1;
+
+			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)$cache_time, null, array('size' => '6'));
 			$label->setValue(__('Update cached result every %s minutes', array($input->generate(false))));
 			if(isset($errors[self::getClass()]['cache'])) $fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
 			else $fieldset->appendChild($label);
@@ -369,7 +391,10 @@
 
 			// Timeout
 			$label = Widget::Label();
-			$input = Widget::Input('fields[' . self::getClass() . '][timeout]', (string)max(1, intval($settings[self::getClass()]['timeout'])), NULL, array('type' => 'hidden'));
+			$timeout_time = isset($settings[self::getClass()]['timeout'])
+				? max(1, intval($settings[self::getClass()]['timeout']))
+				: 1;
+			$input = Widget::Input('fields[' . self::getClass() . '][timeout]', (string)$timeout_time, null, array('type' => 'hidden'));
 			$label->appendChild($input);
 			$fieldset->appendChild($label);
 
