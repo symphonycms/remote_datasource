@@ -283,7 +283,7 @@
 			$ol->setAttribute('data-add', __('Add namespace'));
 			$ol->setAttribute('data-remove', __('Remove namespace'));
 
-			if(isset($settings[self::getClass()]) && is_array($settings[self::getClass()]['namespaces']) && !empty($settings[self::getClass()]['namespaces'])){
+			if(isset($settings[self::getClass()], $settings[self::getClass()]['namespaces']) && is_array($settings[self::getClass()]['namespaces']) && !empty($settings[self::getClass()]['namespaces'])){
 				$ii = 0;
 				foreach($settings[self::getClass()]['namespaces'] as $name => $uri) {
 					// Namespaces get saved to the file as $name => $uri, however in
