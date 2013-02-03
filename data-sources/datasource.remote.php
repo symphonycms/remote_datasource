@@ -47,7 +47,7 @@
 		 *  The path to the Datasource file
 		 * @return string
 		 */
-		public function getSourceColumn($handle) {
+		public static function getSourceColumn($handle) {
 			$datasource = DatasourceManager::create($handle, array(), false);
 
 			if(isset($datasource->dsParamURL)) {
