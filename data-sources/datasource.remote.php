@@ -399,7 +399,7 @@
 			$label = Widget::Label();
 			$timeout_time = isset($settings[self::getClass()]['timeout'])
 				? max(1, intval($settings[self::getClass()]['timeout']))
-				: 1;
+				: 6;
 			$input = Widget::Input('fields[' . self::getClass() . '][timeout]', (string)$timeout_time, null, array('type' => 'hidden'));
 			$label->appendChild($input);
 			$fieldset->appendChild($label);
