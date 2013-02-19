@@ -718,6 +718,8 @@
 
 			if($this->_force_empty_result) $result = $this->emptyXMLSet();
 
+			$result->setAttribute('url', General::sanitize($this->dsParamURL));
+
 			return $result;
 		}
 	}
