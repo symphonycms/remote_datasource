@@ -159,6 +159,12 @@
 				);
 			}
 			else if(is_array($settings)) {
+				// Namespaces come through empty, or as an array, so normalise
+				// to ensure the cache key stays the same.
+				if(is_array($settings['namespaces']) && empty($settings['namespaces'])) {
+					$settings['namespaces'] = null;
+				}
+
 				$cache_id = md5(
 					$settings['url'] .
 					serialize($settings['namespaces']) .
@@ -558,7 +564,7 @@
 				$cache_id = self::buildCacheID($this);
 				$cache = new Cacheable(Symphony::Database());
 				$cachedData = $cache->check($cache_id);
-				$writeToCache = false;
+				$writeToCache = null;
 				$isCacheValid = true;
 				$creation = DateTimeObj::get('c');
 
