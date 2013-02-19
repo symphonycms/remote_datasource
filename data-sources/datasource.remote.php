@@ -256,7 +256,28 @@
 			$group->appendChild($primary);
 
 			$secondary = new XMLElement('div', null, array('class' => 'secondary column'));
+			$div = new XMLElement('div', null, array('class' => 'two columns'));
+
+			// Timeout
+			$label = Widget::Label(__('Timeout'));
+			$label->setAttribute('class', 'column');
+			$timeout_time = isset($settings[self::getClass()]['timeout'])
+				? max(1, intval($settings[self::getClass()]['timeout']))
+				: 6;
+
+			$label->appendChild(
+				Widget::Input('fields[' . self::getClass() . '][timeout]', (string)$timeout_time, 'text')
+			);
+			if(isset($errors[self::getClass()]['timeout'])) {
+				$div->appendChild(Widget::Error($label, $errors[self::getClass()]['timeout']));
+			}
+			else {
+				$div->appendChild($label);
+			}
+
+			// Format
 			$label = Widget::Label(__('Format'));
+			$label->setAttribute('class', 'column');
 			$format = isset($settings[self::getClass()]['format'])
 				? $settings[self::getClass()]['format']
 				: null;
@@ -268,12 +289,13 @@
 				))
 			);
 			if(isset($errors[self::getClass()]['format'])) {
-				$secondary->appendChild(Widget::Error($label, $errors[self::getClass()]['format']));
+				$div->appendChild(Widget::Error($label, $errors[self::getClass()]['format']));
 			}
 			else {
-				$secondary->appendChild($label);
+				$div->appendChild($label);
 			}
 
+			$secondary->appendChild($div);
 			$group->appendChild($secondary);
 			$fieldset->appendChild($group);
 
@@ -394,15 +416,6 @@
 			if(isset($cache_id)) {
 				self::buildCacheInformation($fieldset, $cache, $cache_id);
 			}
-
-			// Timeout
-			$label = Widget::Label();
-			$timeout_time = isset($settings[self::getClass()]['timeout'])
-				? max(1, intval($settings[self::getClass()]['timeout']))
-				: 6;
-			$input = Widget::Input('fields[' . self::getClass() . '][timeout]', (string)$timeout_time, null, array('type' => 'hidden'));
-			$label->appendChild($input);
-			$fieldset->appendChild($label);
 
 			$wrapper->appendChild($fieldset);
 		}
