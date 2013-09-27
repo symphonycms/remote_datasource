@@ -612,7 +612,7 @@
 							$ch->setopt('HTTPHEADER', array('Accept: application/json, */*'));
 						}
 						
-						$this->visitGateway($gateway);
+						$this->visitGateway($ch);
 
 						$data = $ch->exec();
 						$info = $ch->getInfoLast();
