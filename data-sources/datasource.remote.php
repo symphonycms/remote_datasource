@@ -35,6 +35,15 @@
 
 			return $settings;
 		}
+		
+		/**
+		 * This methods allows custom remote data source to set other
+		 * properties on the HTTP gateway, like Authentication or other
+		 * parameters. This method is call just before the `exec` method.
+		 *
+		 * @param Gateway - the Gateway object that will be use for the current HTTP request
+		 */
+		public function visitGateway($gateway) {}
 
 	/*-------------------------------------------------------------------------
 		Utilities
@@ -89,7 +98,7 @@
 				$gateway = new Gateway;
 				$gateway->init($url);
 				$gateway->setopt('TIMEOUT', $timeout);
-
+				
 				// Set the approtiate Accept: headers depending on the format of the URL.
 				if($format == 'xml') {
 					$gateway->setopt('HTTPHEADER', array('Accept: text/xml, */*'));
@@ -97,10 +106,12 @@
 				else if($format == 'json') {
 					$gateway->setopt('HTTPHEADER', array('Accept: application/json, */*'));
 				}
-
+				
+				$this->visitGateway($gateway);
+				
 				$data = $gateway->exec();
 				$info = $gateway->getInfoLast();
-
+				
 				// 28 is CURLE_OPERATION_TIMEOUTED
 				if(isset($info['curl_error']) && $info['curl_error'] == 28) {
 					return __('Request timed out. %d second limit reached.', array($timeout));
@@ -600,6 +611,8 @@
 						else {
 							$ch->setopt('HTTPHEADER', array('Accept: application/json, */*'));
 						}
+						
+						$this->visitGateway($ch);
 
 						$data = $ch->exec();
 						$info = $ch->getInfoLast();
