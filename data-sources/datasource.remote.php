@@ -410,8 +410,8 @@
 			$label = Widget::Label();
 
 			$cache_time = isset($settings[self::getClass()]['cache'])
-				? max(1, intval($settings[self::getClass()]['cache']))
-				: 1;
+				? max(0, intval($settings[self::getClass()]['cache']))
+				: 5;
 
 			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)$cache_time, 'text', array('size' => '6'));
 			$label->setValue(__('Update cached result every %s minutes', array($input->generate(false))));
@@ -432,12 +432,9 @@
 				? (int)$settings[self::getClass()]['timeout']
 				: 6;
 
-			// Check cache value is numeric and greater than 1
+			// Check cache value is numeric
 			if(!is_numeric($settings[self::getClass()]['cache'])) {
 				$errors[self::getClass()]['cache'] = __('Must be a valid number');
-			}
-			else if($settings[self::getClass()]['cache'] < 1) {
-				$errors[self::getClass()]['cache'] = __('Must be greater than zero');
 			}
 
 			// Make sure that XPath has been filled out
@@ -743,7 +740,7 @@
 					}
 
 					else {
-						if($writeToCache) $cache->write($cache_id, $data, $this->dsParamCACHE);
+						if($this->dsParamCACHE > 0 && $writeToCache) $cache->write($cache_id, $data, $this->dsParamCACHE);
 
 						$result->setValue(PHP_EOL . str_repeat("\t", 2) . preg_replace('/([\r\n]+)/', "$1\t", $ret));
 						$result->setAttribute('status', ($isCacheValid === true ? 'fresh' : 'stale'));
