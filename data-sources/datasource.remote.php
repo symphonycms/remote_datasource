@@ -97,6 +97,9 @@
 				else if($format == 'json') {
 					$gateway->setopt('HTTPHEADER', array('Accept: application/json, */*'));
 				}
+				else if($format == 'csv') {
+					$gateway->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
+				}
 
 				$data = $gateway->exec();
 				$info = $gateway->getInfoLast();
@@ -285,7 +288,8 @@
 			$label->appendChild(
 				Widget::Select('fields[' . self::getClass() . '][format]', array(
 					array('xml', $settings[self::getClass()]['format'] == 'xml', 'XML'),
-					array('json', $settings[self::getClass()]['format'] == 'json', 'JSON')
+					array('json', $settings[self::getClass()]['format'] == 'json', 'JSON'),
+					array('csv', $settings[self::getClass()]['format'] == 'csv', 'CSV')
 				), array(
 					'class' => 'picker'
 				))
@@ -597,8 +601,11 @@
 						if($this->dsParamFORMAT == 'xml') {
 							$ch->setopt('HTTPHEADER', array('Accept: text/xml, */*'));
 						}
-						else {
+						else if($this->dsParamFORMAT == 'json') {
 							$ch->setopt('HTTPHEADER', array('Accept: application/json, */*'));
+						}
+						else if($this->dsParamFORMAT == 'csv') {
+							$ch->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
 						}
 
 						$data = $ch->exec();
@@ -610,7 +617,7 @@
 						$writeToCache = true;
 
 						// Handle any response that is not a 200, or the content type does not include XML, JSON, plain or text
-						if((int)$info['http_code'] != 200 || !preg_match('/(xml|json|plain|text)/i', $info['content_type'])){
+						if((int)$info['http_code'] != 200 || !preg_match('/(xml|json|csv|plain|text)/i', $info['content_type'])){
 							$writeToCache = false;
 
 							$result->setAttribute('valid', 'false');
@@ -641,6 +648,18 @@
 								try {
 									require_once TOOLKIT . '/class.json.php';
 									$data = JSON::convertToXML($data);
+								}
+								catch (Exception $ex) {
+									$writeToCache = false;
+									$errors = array(
+										array('message' => $ex->getMessage())
+									);
+								}
+							}
+							else if($this->dsParamFORMAT == 'csv') {
+								try {
+									require_once EXTENSIONS . '/remote_datasource/lib/class.csv.php';
+									$data = CSV::convertToXML($data);
 								}
 								catch (Exception $ex) {
 									$writeToCache = false;
