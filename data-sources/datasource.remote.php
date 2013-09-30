@@ -35,6 +35,15 @@
 
 			return $settings;
 		}
+		
+		/**
+		 * This methods allows custom remote data source to set other
+		 * properties on the HTTP gateway, like Authentication or other
+		 * parameters. This method is call just before the `exec` method.
+		 *
+		 * @param Gateway - the Gateway object that will be use for the current HTTP request
+		 */
+		public function prepareGateway(&$gateway) {}
 
 	/*-------------------------------------------------------------------------
 		Utilities
@@ -100,10 +109,12 @@
 				else if($format == 'csv') {
 					$gateway->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
 				}
-
+				
+				$this->prepareGateway($gateway);
+				
 				$data = $gateway->exec();
 				$info = $gateway->getInfoLast();
-
+				
 				// 28 is CURLE_OPERATION_TIMEOUTED
 				if(isset($info['curl_error']) && $info['curl_error'] == 28) {
 					return __('Request timed out. %d second limit reached.', array($timeout));
@@ -604,6 +615,8 @@
 						else if($this->dsParamFORMAT == 'csv') {
 							$ch->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
 						}
+						
+						$this->prepareGateway($ch);
 
 						$data = $ch->exec();
 						$info = $ch->getInfoLast();
