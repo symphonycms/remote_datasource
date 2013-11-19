@@ -546,7 +546,7 @@
 		Execution
 	-------------------------------------------------------------------------*/
 
-		public function grab(array &$param_pool = null) {
+		public function execute(array &$param_pool = null) {
 			$result = new XMLElement($this->dsParamROOTELEMENT);
 
 			try {

@@ -8,6 +8,11 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="1.2" date="unreleased" min="2.3.1">
+			- Support CSV
+			- Allow `$gateway` to be manipulated
+			- Allow no cache to be set
+		</release>
 		<release version="1.1" date="2013-02-19" min="2.3">
 			- Officially release the extension
 			- Add `url` to the resulting XML result so you can see what URL was actually fetched
