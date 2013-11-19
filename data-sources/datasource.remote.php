@@ -549,6 +549,15 @@
 		public function execute(array &$param_pool = null) {
 			$result = new XMLElement($this->dsParamROOTELEMENT);
 
+			// When DS is called out of the Frontend context, this will enable
+			// {$root} and {$workspace} parameters to be evaluated
+			if(empty($this->_env)) {
+				$this->_env['env']['pool'] = array(
+					'root' => URL,
+					'workspace' => WORKSPACE
+				);
+			}
+
 			try {
 				require_once(TOOLKIT . '/class.gateway.php');
 				require_once(TOOLKIT . '/class.xsltprocess.php');
