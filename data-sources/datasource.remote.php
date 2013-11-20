@@ -696,18 +696,17 @@
 
 							// If the `$data` is invalid, return a result explaining why
 							if($writeToCache === false) {
-								$result = new XMLElement('errors');
+								$error = new XMLElement('errors');
+								$error->setAttribute('valid', 'false');
 
-								$result->setAttribute('valid', 'false');
-
-								$result->appendChild(new XMLElement('error', __('Data returned is invalid.')));
+								$error->appendChild(new XMLElement('error', __('Data returned is invalid.')));
 
 								foreach($errors as $e) {
 									if(strlen(trim($e['message'])) == 0) continue;
-									$result->appendChild(new XMLElement('item', General::sanitize($e['message'])));
+									$error->appendChild(new XMLElement('item', General::sanitize($e['message'])));
 								}
 
-								$result->appendChild($result);
+								$error->appendChild($result);
 
 								return $result;
 							}
