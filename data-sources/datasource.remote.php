@@ -182,7 +182,7 @@
 				$cache_id = md5(
 					$settings['url'] .
 					serialize($settings['namespaces']) .
-					$settings['xpath'] .
+					stripslashes($settings['xpath']) .
 					$settings['format']
 				);
 			}
@@ -400,7 +400,7 @@
 			// Included Elements
 			$label = Widget::Label(__('Included Elements'));
 			$xpath = isset($settings[self::getClass()]['xpath'])
-				? $settings[self::getClass()]['xpath']
+				? stripslashes($settings[self::getClass()]['xpath'])
 				: null;
 
 			$label->appendChild(
@@ -536,7 +536,7 @@
 				$params['rootelement'], // rootelement
 				$settings['url'], // url
 				$settings['format'], // format
-				$settings['xpath'], // xpath
+				addslashes($settings['xpath']), // xpath
 				$settings['cache'], // cache
 				$timeout// timeout
 			);
@@ -565,7 +565,9 @@
 
 				$this->dsParamURL = $this->parseParamURL($this->dsParamURL);
 
-				if(isset($this->dsParamXPATH)) $this->dsParamXPATH = $this->__processParametersInString($this->dsParamXPATH, $this->_env);
+				if(isset($this->dsParamXPATH)) {
+					$this->dsParamXPATH = $this->__processParametersInString(stripslashes($this->dsParamXPATH), $this->_env);
+				}
 
 				// Builds a Default Stylesheet to transform the resulting XML with
 				$stylesheet = new XMLElement('xsl:stylesheet');
