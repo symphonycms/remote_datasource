@@ -706,7 +706,7 @@
 									$error->appendChild(new XMLElement('item', General::sanitize($e['message'])));
 								}
 
-								$error->appendChild($result);
+								$result->appendChild($error);
 
 								return $result;
 							}
