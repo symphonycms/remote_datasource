@@ -239,6 +239,7 @@
 
 			$fieldset = new XMLElement('fieldset');
 			$fieldset->setAttribute('class', 'settings contextual ' . __CLASS__);
+			$fieldset->setAttribute('data-context', General::createHandle(self::getName()));
 			$fieldset->appendChild(new XMLElement('legend', self::getName()));
 
 			// URL
