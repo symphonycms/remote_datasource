@@ -241,41 +241,59 @@
 			$fieldset->setAttribute('class', 'settings contextual ' . __CLASS__);
 			$fieldset->setAttribute('data-context', General::createHandle(self::getName()));
 			$fieldset->appendChild(new XMLElement('legend', self::getName()));
-
-			// URL
-			$group = new XMLElement('div');
-			$group->setAttribute('class', 'two columns');
-
-			$primary = new XMLElement('div', null, array('class' => 'primary column'));
-			$label = Widget::Label(__('URL'));
-			$url = isset($settings[self::getClass()]['url'])
-				? General::sanitize($settings[self::getClass()]['url'])
-				: null;
-
-			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][url]', $url, 'text', array('placeholder' => 'http://')));
 			$p = new XMLElement('p',
 				__('Use %s syntax to specify dynamic portions of the URL.', array(
 					'<code>{' . __('$param') . '}</code>'
 				))
 			);
 			$p->setAttribute('class', 'help');
-			$label->appendChild($p);
+			$fieldset->appendChild($p);
+
+			// URL
+			$label = Widget::Label(__('URL'));
+			$url = isset($settings[self::getClass()]['url'])
+				? General::sanitize($settings[self::getClass()]['url'])
+				: null;
+
+			$label->appendChild(Widget::Input('fields[' . self::getClass() . '][url]', $url, 'text', array('placeholder' => 'http://')));
 
 			if(isset($errors[self::getClass()]['url'])) {
-				$primary->appendChild(Widget::Error($label, $errors[self::getClass()]['url']));
+				$fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['url']));
 			}
 			else {
-				$primary->appendChild($label);
+				$fieldset->appendChild($label);
 			}
 
-			$group->appendChild($primary);
+			// Included Elements
+			$label = Widget::Label(__('Included Elements'));
 
-			$secondary = new XMLElement('div', null, array('class' => 'secondary column'));
-			$div = new XMLElement('div', null, array('class' => 'two columns'));
+			$help = new XMLElement('i', __('xPath expression'));
+			$label->appendChild($help);
+
+			$xpath = isset($settings[self::getClass()]['xpath'])
+				? stripslashes($settings[self::getClass()]['xpath'])
+				: null;
+
+			$label->appendChild(
+				Widget::Input('fields[' . self::getClass() . '][xpath]', $xpath, 'text', array('placeholder' => '/'))
+			);
+			if(isset($errors[self::getClass()]['xpath'])) {
+				$fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['xpath']));
+			}
+			else {
+				$fieldset->appendChild($label);
+			}
 
 			// Timeout
+			$group = new XMLElement('div', null, array('class' => 'three columns'));
+			$fieldset->appendChild($group);
+
 			$label = Widget::Label(__('Timeout'));
 			$label->setAttribute('class', 'column');
+
+			$help = new XMLElement('i', __('in minutes'));
+			$label->appendChild($help);
+
 			$timeout_time = isset($settings[self::getClass()]['timeout'])
 				? max(1, intval($settings[self::getClass()]['timeout']))
 				: 6;
@@ -284,15 +302,32 @@
 				Widget::Input('fields[' . self::getClass() . '][timeout]', (string)$timeout_time, 'text')
 			);
 			if(isset($errors[self::getClass()]['timeout'])) {
-				$div->appendChild(Widget::Error($label, $errors[self::getClass()]['timeout']));
+				$group->appendChild(Widget::Error($label, $errors[self::getClass()]['timeout']));
 			}
 			else {
-				$div->appendChild($label);
+				$group->appendChild($label);
 			}
+
+			// Caching
+			$label = Widget::Label(__('Cache expiration'));
+			$label->setAttribute('class', 'column');
+
+			$help = new XMLElement('i', __('in minutes'));
+			$label->appendChild($help);
+
+			$cache_time = isset($settings[self::getClass()]['cache'])
+				? max(0, intval($settings[self::getClass()]['cache']))
+				: 5;
+
+			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)$cache_time);
+			$label->appendChild($input);
+			if(isset($errors[self::getClass()]['cache'])) $gropu->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
+			else $group->appendChild($label);
 
 			// Format
 			$label = Widget::Label(__('Format'));
 			$label->setAttribute('class', 'column');
+
 			$format = isset($settings[self::getClass()]['format'])
 				? $settings[self::getClass()]['format']
 				: null;
@@ -307,15 +342,11 @@
 				))
 			);
 			if(isset($errors[self::getClass()]['format'])) {
-				$div->appendChild(Widget::Error($label, $errors[self::getClass()]['format']));
+				$group->appendChild(Widget::Error($label, $errors[self::getClass()]['format']));
 			}
 			else {
-				$div->appendChild($label);
+				$group->appendChild($label);
 			}
-
-			$secondary->appendChild($div);
-			$group->appendChild($secondary);
-			$fieldset->appendChild($group);
 
 			// Namespaces
 			$div = new XMLElement('div', false, array(
@@ -323,12 +354,13 @@
 				'class' => 'pickable'
 			));
 			$p = new XMLElement('p', __('Namespace Declarations'));
-			$p->appendChild(new XMLElement('i', __('Namespaces will automatically be discovered when saving this datasource if it does not include any dynamic portions.')));
+			$p->appendChild(new XMLElement('i', __('optional')));
 			$p->setAttribute('class', 'label');
 			$div->appendChild($p);
 
+			$frame = new XMLElement('div', null, array('class' => 'frame filters-duplicator'));
+
 			$ol = new XMLElement('ol');
-			$ol->setAttribute('class', 'filters-duplicator');
 			$ol->setAttribute('data-add', __('Add namespace'));
 			$ol->setAttribute('data-remove', __('Remove namespace'));
 
@@ -395,40 +427,9 @@
 			$li->appendChild($group);
 			$ol->appendChild($li);
 
-			$div->appendChild($ol);
+			$frame->appendChild($ol);
+			$div->appendChild($frame);
 			$fieldset->appendChild($div);
-
-			// Included Elements
-			$label = Widget::Label(__('Included Elements'));
-			$xpath = isset($settings[self::getClass()]['xpath'])
-				? stripslashes($settings[self::getClass()]['xpath'])
-				: null;
-
-			$label->appendChild(
-				Widget::Input('fields[' . self::getClass() . '][xpath]', $xpath)
-			);
-			if(isset($errors[self::getClass()]['xpath'])) {
-				$fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['xpath']));
-			}
-			else {
-				$fieldset->appendChild($label);
-			}
-
-			$p = new XMLElement('p', __('Use an XPath expression to select which elements from the source XML to include.'));
-			$p->setAttribute('class', 'help');
-			$fieldset->appendChild($p);
-
-			// Caching
-			$label = Widget::Label();
-
-			$cache_time = isset($settings[self::getClass()]['cache'])
-				? max(0, intval($settings[self::getClass()]['cache']))
-				: 5;
-
-			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)$cache_time, 'text', array('size' => '6'));
-			$label->setValue(__('Update cached result every %s minutes', array($input->generate(false))));
-			if(isset($errors[self::getClass()]['cache'])) $fieldset->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
-			else $fieldset->appendChild($label);
 
 			// Check for existing Cache objects
 			if(isset($cache_id)) {
