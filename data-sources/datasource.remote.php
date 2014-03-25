@@ -7,6 +7,8 @@
 
 		private static $url_result = null;
 
+		private static $cacheable = null;
+
 		public static function getName() {
 			return __('Remote Datasource');
 		}
@@ -222,7 +224,7 @@
 
 		public static function buildEditor(XMLElement $wrapper, array &$errors = array(), array $settings = null, $handle = null) {
 			if(!is_null($handle) && isset($settings[self::getClass()])) {
-				$cache = new Cacheable(Symphony::Database());
+				$cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
 				$cache_id = self::buildCacheID($settings[self::getClass()]);
 			}
 
@@ -528,7 +530,7 @@
 			// immediately to the frontend
 			if(!is_null(self::$url_result)) {
 				$settings['namespaces'] = $namespaces;
-				$cache = new Cacheable(Symphony::Database());
+				$cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
 				$cache_id = self::buildCacheID($settings);
 				$cache->write($cache_id, self::$url_result, $settings['cache']);
 			}
@@ -601,7 +603,7 @@
 
 				// Check for an existing Cache for this Datasource
 				$cache_id = self::buildCacheID($this);
-				$cache = new Cacheable(Symphony::Database());
+				$cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
 				$cachedData = $cache->check($cache_id);
 				$writeToCache = null;
 				$isCacheValid = true;

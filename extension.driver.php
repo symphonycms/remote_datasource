@@ -25,5 +25,30 @@
 
 			return self::$provides[$type];
 		}
+		
+		public function getSubscribedDelegates(){
+			return array(
+				array(
+					'page'		=> '/system/preferences/',
+					'delegate'	=> 'AddCachingOpportunity',
+					'callback'	=> 'addCachingOpportunity'
+				)
+			);
+		}
+
+		public function addCachingOpportunity($context) {
+			$current_cache = Symphony::Configuration()->get('remotedatasource', 'caching');
+			$label = Widget::Label(__('Remote Datasource'));
+
+			$options = array();
+			foreach($context['available_caches'] as $handle => $cache_name) {
+				$options[] = array($handle, ($current_cache == $handle || (!isset($current_cache) && $handle === 'database')), $cache_name);
+			}
+
+			$select = Widget::Select('settings[caching][remotedatasource]', $options, array('class' => 'picker'));
+			$label->appendChild($select);
+
+			$context['wrapper']->appendChild($label);
+		}
 
 	}
