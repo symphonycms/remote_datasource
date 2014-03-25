@@ -321,7 +321,7 @@
 
 			$input = Widget::Input('fields[' . self::getClass() . '][cache]', (string)$cache_time);
 			$label->appendChild($input);
-			if(isset($errors[self::getClass()]['cache'])) $gropu->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
+			if(isset($errors[self::getClass()]['cache'])) $group->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
 			else $group->appendChild($label);
 
 			// Format
