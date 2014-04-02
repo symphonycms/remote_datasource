@@ -46,6 +46,13 @@
 		 * @param Gateway - the Gateway object that will be use for the current HTTP request
 		 */
 		public function prepareGateway(&$gateway) {}
+		
+		/**
+		 * This methods allows custom remote data source to read the returned
+		 * data before it becomes only available in the XML.
+		 * @param string - the parsed xml string data returned by the Gateway
+		 */
+		public function visitData(&$data) {}
 
 	/*-------------------------------------------------------------------------
 		Utilities
@@ -734,6 +741,9 @@
 					$data = trim($cachedData['data']);
 					$creation = DateTimeObj::get('c', $cachedData['creation']);
 				}
+				
+				// Visit the data
+				$this->visitData($data);
 
 				// If `$writeToCache` is set to false, invalidate the old cache if it existed.
 				if(is_array($cachedData) && !empty($cachedData) && $writeToCache === false) {
