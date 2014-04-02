@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension id="remote_datasource" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+<extension id="remote_datasource" status="released" xmlns="http://getsymphony.com/schemas/extension/1.0">
 	<name>Remote Datasource</name>
-	<description>A datasource that consumes XML or JSON content.</description>
+	<description>A datasource that consumes XML, JSON or CSV content.</description>
+	<repo type="github">https://github.com/symphonycms/remote_datasource</repo>
 	<authors>
 		<author>
 			<name github="symphonycms" symphony="team">Symphony Team</name>
 		</author>
 	</authors>
 	<releases>
-		<release version="1.2" date="unreleased" min="2.3.1">
+		<release version="2.0" date="unreleased" min="2.4">
 			- Support CSV
 			- Allow `$gateway` to be manipulated
 			- Allow no cache to be set
