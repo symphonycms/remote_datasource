@@ -43,16 +43,21 @@
 		 * properties on the HTTP gateway, like Authentication or other
 		 * parameters. This method is call just before the `exec` method.
 		 *
-		 * @param Gateway - the Gateway object that will be use for the current HTTP request
+		 * @param Gateway $gateway
+		 *  the Gateway object that will be use for the current HTTP request
+		 *  passed by reference
 		 */
 		public function prepareGateway(&$gateway) {}
-		
+
 		/**
 		 * This methods allows custom remote data source to read the returned
 		 * data before it becomes only available in the XML.
-		 * @param string - the parsed xml string data returned by the Gateway
+		 *
+		 * @since Remote Datasource 2.0
+		 * @param string $data
+		 *  the parsed xml string data returned by the Gateway by reference
 		 */
-		public function visitData(&$data) {}
+		public function exposeData(&$data) {}
 
 	/*-------------------------------------------------------------------------
 		Utilities
@@ -741,9 +746,9 @@
 					$data = trim($cachedData['data']);
 					$creation = DateTimeObj::get('c', $cachedData['creation']);
 				}
-				
+
 				// Visit the data
-				$this->visitData($data);
+				$this->exposeData($data);
 
 				// If `$writeToCache` is set to false, invalidate the old cache if it existed.
 				if(is_array($cachedData) && !empty($cachedData) && $writeToCache === false) {
