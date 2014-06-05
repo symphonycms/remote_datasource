@@ -47,7 +47,7 @@
 		 *  the Gateway object that will be use for the current HTTP request
 		 *  passed by reference
 		 */
-		public function prepareGateway(&$gateway) {}
+		public static function prepareGateway(&$gateway) {}
 
 		/**
 		 * This methods allows custom remote data source to read the returned
@@ -244,7 +244,7 @@
 			if(isset($cache_id) && in_array('clear_cache', Administration::instance()->Page->getContext())) {
 				$cache->forceExpiry($cache_id);
 				Administration::instance()->Page->pageAlert(
-					__('Data source cache cleared at %s.', array(DateTimeObj::getTimeAgo()))
+					__('Data source cache cleared at %s.', array(Widget::Time()->generate()))
 					. '<a href="' . SYMPHONY_URL . '/blueprints/datasources/" accesskey="a">'
 					. __('View all Data sources')
 					. '</a>'
@@ -776,6 +776,9 @@
 							$errors->appendChild(new XMLElement('item', General::sanitize($e['message'])));
 						}
 						$result->appendChild($errors);
+						$result->appendChild(
+							new XMLElement('raw-data', General::wrapInCDATA($data))
+						);
 					}
 
 					else if(strlen(trim($ret)) == 0) {
