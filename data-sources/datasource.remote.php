@@ -37,7 +37,7 @@
 
 			return $settings;
 		}
-		
+
 		/**
 		 * This methods allows custom remote data source to set other
 		 * properties on the HTTP gateway, like Authentication or other
@@ -102,7 +102,7 @@
 		 *  Returns an array with the 'data' if it is a valid URL, otherwise a string
 		 *  containing an error message.
 		 */
-		public static function isValidURL($url, $timeout = 6, $format = 'xml', $fetch_URL = false) {
+		public function isValidURL($url, $timeout = 6, $format = 'xml', $fetch_URL = false) {
 			// Check that URL was provided
 			if(trim($url) == '') {
 				return __('This is a required field');
@@ -123,12 +123,12 @@
 				else if($format == 'csv') {
 					$gateway->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
 				}
-				
+
 				$this->prepareGateway($gateway);
-				
+
 				$data = $gateway->exec();
 				$info = $gateway->getInfoLast();
-				
+
 				// 28 is CURLE_OPERATION_TIMEOUTED
 				if(isset($info['curl_error']) && $info['curl_error'] == 28) {
 					return __('Request timed out. %d second limit reached.', array($timeout));
@@ -477,7 +477,7 @@
 			// as we don't have the environment details of where this datasource is going
 			// to be executed.
 			else if(!preg_match('@{([^}]+)}@i', $settings[self::getClass()]['url'])) {
-				$valid_url = self::isValidURL($settings[self::getClass()]['url'], $timeout, $settings[self::getClass()]['format'], true);
+				$valid_url = $this->isValidURL($settings[self::getClass()]['url'], $timeout, $settings[self::getClass()]['format'], true);
 
 				// If url was valid, `isValidURL` will return an array of data
 				if(is_array($valid_url)) {
@@ -642,7 +642,7 @@
 						else if($this->dsParamFORMAT == 'csv') {
 							$ch->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
 						}
-						
+
 						$this->prepareGateway($ch);
 
 						$data = $ch->exec();
