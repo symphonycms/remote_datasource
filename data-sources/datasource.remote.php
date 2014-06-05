@@ -253,7 +253,7 @@
 
 			$fieldset = new XMLElement('fieldset');
 			$fieldset->setAttribute('class', 'settings contextual ' . __CLASS__);
-			$fieldset->setAttribute('data-context', General::createHandle(self::getName()));
+			$fieldset->setAttribute('data-context', Lang::createHandle(self::getName()));
 			$fieldset->appendChild(new XMLElement('legend', self::getName()));
 			$p = new XMLElement('p',
 				__('Use %s syntax to specify dynamic portions of the URL.', array(
