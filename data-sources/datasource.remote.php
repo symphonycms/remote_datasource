@@ -102,7 +102,7 @@
 		 *  Returns an array with the 'data' if it is a valid URL, otherwise a string
 		 *  containing an error message.
 		 */
-		public function isValidURL($url, $timeout = 6, $format = 'xml', $fetch_URL = false) {
+		public static function isValidURL($url, $timeout = 6, $format = 'xml', $fetch_URL = false) {
 			// Check that URL was provided
 			if(trim($url) == '') {
 				return __('This is a required field');
@@ -124,7 +124,7 @@
 					$gateway->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
 				}
 
-				$this->prepareGateway($gateway);
+				static::prepareGateway($gateway);
 
 				$data = $gateway->exec();
 				$info = $gateway->getInfoLast();
@@ -373,6 +373,7 @@
 			$div->appendChild($p);
 
 			$frame = new XMLElement('div', null, array('class' => 'frame filters-duplicator'));
+			$frame->setAttribute('data-interactive', 'data-interactive');
 
 			$ol = new XMLElement('ol');
 			$ol->setAttribute('data-add', __('Add namespace'));
@@ -477,7 +478,7 @@
 			// as we don't have the environment details of where this datasource is going
 			// to be executed.
 			else if(!preg_match('@{([^}]+)}@i', $settings[self::getClass()]['url'])) {
-				$valid_url = $this->isValidURL($settings[self::getClass()]['url'], $timeout, $settings[self::getClass()]['format'], true);
+				$valid_url = self::isValidURL($settings[self::getClass()]['url'], $timeout, $settings[self::getClass()]['format'], true);
 
 				// If url was valid, `isValidURL` will return an array of data
 				if(is_array($valid_url)) {
