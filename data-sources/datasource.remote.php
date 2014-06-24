@@ -319,7 +319,7 @@ class RemoteDatasource extends DataSource implements iDatasource
         $label = Widget::Label(__('Timeout'));
         $label->setAttribute('class', 'column');
 
-        $help = new XMLElement('i', __('in minutes'));
+        $help = new XMLElement('i', __('in seconds'));
         $label->appendChild($help);
 
         $timeout_time = isset($settings[self::getClass()]['timeout'])
