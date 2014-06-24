@@ -367,7 +367,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                 array('xml', $settings[self::getClass()]['format'] == 'xml', 'XML'),
                 array('json', $settings[self::getClass()]['format'] == 'json', 'JSON'),
                 array('csv', $settings[self::getClass()]['format'] == 'csv', 'CSV'),
-                array('text', $settings[self::getClass()]['format'] == 'txt', 'TXT')
+                array('txt', $settings[self::getClass()]['format'] == 'txt', 'TEXT')
             ), array(
                 'class' => 'picker'
             ))
