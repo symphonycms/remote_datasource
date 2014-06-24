@@ -132,7 +132,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                 $gateway->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
             }
 
-            static::prepareGateway($gateway);
+            self::prepareGateway($gateway);
 
             $data = $gateway->exec();
             $info = $gateway->getInfoLast();
@@ -663,7 +663,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                         $ch->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
                     }
 
-                    $this->prepareGateway($ch);
+                    self::prepareGateway($ch);
 
                     $data = $ch->exec();
                     $info = $ch->getInfoLast();
