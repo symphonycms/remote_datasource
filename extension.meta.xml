@@ -9,7 +9,10 @@
 		</author>
 	</authors>
 	<releases>
-		<release version="2.0" date="2014-05-06" min="2.4">
+		<release version="2.0.1" date="2014-06-24" min="2.4">
+			- Clean-up
+		</release>
+		<release version="2.0.0" date="2014-05-06" min="2.4">
 			- Add support for Symphony 2.4
 			- Support CSV data format
 			- Allow `$gateway` to be manipulated and `$data` to previewed
@@ -17,14 +20,14 @@
 			- Allow no cache to be set
 			- Sanitize XPath to allow for more complex queries
 		</release>
-		<release version="1.1" date="2013-02-19" min="2.3" max="2.4">
+		<release version="1.1.0" date="2013-02-19" min="2.3" max="2.4">
 			- Officially release the extension
 			- Add `url` to the resulting XML result so you can see what URL was actually fetched
 			- Fix bug where a result would always be `stale`
 			- Allow timeout to be user configurable in the Data Source Editor
 			- Various PHP E_NOTICE fixes
 		</release>
-		<release version="1.0" date="2012-03-11" min="2.3">
+		<release version="1.0.0" date="2012-03-11" min="2.3">
 			- Initial release
 		</release>
 	</releases>
