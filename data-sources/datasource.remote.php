@@ -3,7 +3,8 @@
 require_once TOOLKIT . '/class.datasource.php';
 require_once FACE . '/interface.datasource.php';
 
-Class RemoteDatasource extends DataSource implements iDatasource {
+class RemoteDatasource extends DataSource implements iDatasource
+{
 
     private static $url_result = null;
 
@@ -52,7 +53,10 @@ Class RemoteDatasource extends DataSource implements iDatasource {
      *  the Gateway object that will be use for the current HTTP request
      *  passed by reference
      */
-    public static function prepareGateway(&$gateway) {}
+    public static function prepareGateway(&$gateway)
+    {
+
+    }
 
     /**
      * This methods allows custom remote data source to read the returned
@@ -62,7 +66,10 @@ Class RemoteDatasource extends DataSource implements iDatasource {
      * @param string $data
      *  the parsed xml string data returned by the Gateway by reference
      */
-    public function exposeData(&$data) {}
+    public function exposeData(&$data)
+    {
+
+    }
 
 /*-------------------------------------------------------------------------
     Utilities
@@ -109,12 +116,9 @@ Class RemoteDatasource extends DataSource implements iDatasource {
      */
     public static function isValidURL($url, $timeout = 6, $format = 'xml', $fetch_URL = false)
     {
-        // Check that URL was provided
         if (trim($url) == '') {
             return __('This is a required field');
-        }
-        // Check to see the URL works.
-        else if ($fetch_URL === true) {
+        } elseif ($fetch_URL === true) {
             $gateway = new Gateway;
             $gateway->init($url);
             $gateway->setopt('TIMEOUT', $timeout);
@@ -157,13 +161,18 @@ Class RemoteDatasource extends DataSource implements iDatasource {
      */
     public static function injectNamespaces(array $namespaces, &$template)
     {
-        if(empty($namespaces)) return;
+        if (empty($namespaces)) {
+            return;
+        }
 
         $placeholder = '<!-- NAMESPACES -->';
         $string = 'public $dsParamNAMESPACES = array(' . PHP_EOL;
 
         foreach ($namespaces as $key => $val) {
-            if(trim($val) == '') continue;
+            if (trim($val) == '') {
+                continue;
+            }
+
             $string .= "\t\t\t'$key' => '" . addslashes($val) . "'," . PHP_EOL;
         }
 
@@ -252,15 +261,17 @@ Class RemoteDatasource extends DataSource implements iDatasource {
                 __('Data source cache cleared at %s.', array(Widget::Time()->generate()))
                 . '<a href="' . SYMPHONY_URL . '/blueprints/datasources/" accesskey="a">'
                 . __('View all Data sources')
-                . '</a>'
-                , Alert::SUCCESS);
+                . '</a>',
+                Alert::SUCCESS
+            );
         }
 
         $fieldset = new XMLElement('fieldset');
         $fieldset->setAttribute('class', 'settings contextual ' . __CLASS__);
         $fieldset->setAttribute('data-context', Lang::createHandle(self::getName()));
         $fieldset->appendChild(new XMLElement('legend', self::getName()));
-        $p = new XMLElement('p',
+        $p = new XMLElement(
+            'p',
             __('Use %s syntax to specify dynamic portions of the URL.', array(
                 '<code>{' . __('$param') . '}</code>'
             ))
@@ -337,8 +348,11 @@ Class RemoteDatasource extends DataSource implements iDatasource {
 
         $input = Widget::Input('fields[' . self::getClass() . '][cache]', (string) $cache_time);
         $label->appendChild($input);
-        if(isset($errors[self::getClass()]['cache'])) $group->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
-        else $group->appendChild($label);
+        if (isset($errors[self::getClass()]['cache'])) {
+            $group->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
+        } else {
+            $group->appendChild($label);
+        }
 
         // Format
         $label = Widget::Label(__('Format'));
@@ -475,19 +489,18 @@ Class RemoteDatasource extends DataSource implements iDatasource {
         // Ensure we have a URL
         if (trim($settings[self::getClass()]['url']) == '') {
             $errors[self::getClass()]['url'] = __('This is a required field');
-        }
-        // If there is a parameter in the URL, we can't validate the existence of the URL
-        // as we don't have the environment details of where this datasource is going
-        // to be executed.
-        else if (!preg_match('@{([^}]+)}@i', $settings[self::getClass()]['url'])) {
+        } elseif (!preg_match('@{([^}]+)}@i', $settings[self::getClass()]['url'])) {
+
+            // If there is a parameter in the URL, we can't validate the existence of the URL
+            // as we don't have the environment details of where this datasource is going
+            // to be executed.
             $valid_url = self::isValidURL($settings[self::getClass()]['url'], $timeout, $settings[self::getClass()]['format'], true);
 
             // If url was valid, `isValidURL` will return an array of data
+            // Otherwise it'll return a string, which is an error
             if (is_array($valid_url)) {
                 self::$url_result = $valid_url['data'];
-            }
-            // Otherwise it'll return a string, which is an error
-            else {
+            } else {
                 $errors[self::getClass()]['url'] = $valid_url;
             }
         }
@@ -518,7 +531,9 @@ Class RemoteDatasource extends DataSource implements iDatasource {
                 foreach ($matches[2] as $index => $uri) {
                     $name = $matches[1][$index];
 
-                    if (in_array($name, $detected_namespaces) or in_array($uri, $detected_namespaces)) continue;
+                    if (in_array($name, $detected_namespaces) || in_array($uri, $detected_namespaces)) {
+                        continue;
+                    }
 
                     $detected_namespaces[] = $name;
                     $detected_namespaces[] = $uri;
@@ -552,7 +567,8 @@ Class RemoteDatasource extends DataSource implements iDatasource {
             $cache->write($cache_id, self::$url_result, $settings['cache']);
         }
 
-        return sprintf($template,
+        return sprintf(
+            $template,
             $params['rootelement'], // rootelement
             $settings['url'], // url
             $settings['format'], // format
@@ -606,7 +622,7 @@ Class RemoteDatasource extends DataSource implements iDatasource {
             // Namespaces
             if (isset($this->dsParamNAMESPACES) && is_array($this->dsParamNAMESPACES)) {
                 foreach ($this->dsParamNAMESPACES as $name => $uri) {
-                    $instruction->setAttribute('xmlns' . ($name ? ":{$name}" : NULL), $uri);
+                    $instruction->setAttribute('xmlns' . ($name ? ":{$name}" : null), $uri);
                 }
             }
 
@@ -628,10 +644,10 @@ Class RemoteDatasource extends DataSource implements iDatasource {
             $creation = DateTimeObj::get('c');
 
             // Execute if the cache doesn't exist, or if it is old.
-            if(
+            if (
                 (!is_array($cachedData) || empty($cachedData)) // There's no cache.
                 || (time() - $cachedData['creation']) > ($this->dsParamCACHE * 60) // The cache is old.
-            ){
+            ) {
                 if (Mutex::acquire($cache_id, $this->dsParamTIMEOUT, TMP)) {
                     $ch = new Gateway;
                     $ch->init($this->dsParamURL);
@@ -665,23 +681,25 @@ Class RemoteDatasource extends DataSource implements iDatasource {
                         // 28 is CURLE_OPERATION_TIMEOUTED
                         if ($info['curl_error'] == 28) {
                             $result->appendChild(
-                                new XMLElement('error',
+                                new XMLElement(
+                                    'error',
                                     sprintf('Request timed out. %d second limit reached.', $timeout)
                                 )
                             );
                         } else {
                             $result->appendChild(
-                                new XMLElement('error',
+                                new XMLElement(
+                                    'error',
                                     sprintf('Status code %d was returned. Content-type: %s', $info['http_code'], $info['content_type'])
                                 )
                             );
                         }
 
                         return $result;
-                    }
+                    } else if (strlen($data) > 0) {
 
-                    // Handle where there is `$data`
-                    else if (strlen($data) > 0) {
+                        // Handle where there is `$data`
+
                         // If it's JSON, convert it to XML
                         if ($this->dsParamFORMAT == 'json') {
                             try {
@@ -703,9 +721,9 @@ Class RemoteDatasource extends DataSource implements iDatasource {
                                     array('message' => $ex->getMessage())
                                 );
                             }
-                        }
-                        // If the XML doesn't validate..
-                        else if (!General::validateXML($data, $errors, false, new XsltProcess)) {
+                        } elseif (!General::validateXML($data, $errors, false, new XsltProcess)) {
+                         
+                            // If the XML doesn't validate..
                             $writeToCache = false;
                         }
 
@@ -717,7 +735,10 @@ Class RemoteDatasource extends DataSource implements iDatasource {
                             $error->appendChild(new XMLElement('error', __('Data returned is invalid.')));
 
                             foreach ($errors as $e) {
-                                if(strlen(trim($e['message'])) == 0) continue;
+                                if (strlen(trim($e['message'])) == 0) {
+                                    continue;
+                                }
+                                
                                 $error->appendChild(new XMLElement('item', General::sanitize($e['message'])));
                             }
 
@@ -725,23 +746,21 @@ Class RemoteDatasource extends DataSource implements iDatasource {
 
                             return $result;
                         }
-                    }
-                    // If `$data` is empty, set the `force_empty_result` to true.
-                    else if (strlen($data) == 0) {
+                    } elseif (strlen($data) == 0) {
+    
+                        // If `$data` is empty, set the `force_empty_result` to true.
                         $this->_force_empty_result = true;
                     }
-                }
-
-                // Failed to acquire a lock
-                else {
+                } else {
+    
+                    // Failed to acquire a lock
                     $result->appendChild(
                         new XMLElement('error', __('The %s class failed to acquire a lock.', array('<code>Mutex</code>')))
                     );
                 }
-            }
-
-            // The cache is good, use it!
-            else {
+            } else {
+    
+                // The cache is good, use it!
                 $data = trim($cachedData['data']);
                 $creation = DateTimeObj::get('c', $cachedData['creation']);
             }
@@ -755,7 +774,9 @@ Class RemoteDatasource extends DataSource implements iDatasource {
                 $isCacheValid = false;
                 $creation = DateTimeObj::get('c', $cachedData['creation']);
 
-                if(empty($data)) $this->_force_empty_result = true;
+                if (empty($data)) {
+                    $this->_force_empty_result = true;
+                }
             }
 
             // If `force_empty_result` is false and `$result` is an instance of
@@ -770,7 +791,10 @@ Class RemoteDatasource extends DataSource implements iDatasource {
                     $result->appendChild($error);
                     $errors = new XMLElement('errors');
                     foreach ($proc->getError() as $e) {
-                        if(strlen(trim($e['message'])) == 0) continue;
+                        if (strlen(trim($e['message'])) == 0) {
+                            continue;
+                        }
+
                         $errors->appendChild(new XMLElement('item', General::sanitize($e['message'])));
                     }
                     $result->appendChild($errors);
@@ -780,7 +804,9 @@ Class RemoteDatasource extends DataSource implements iDatasource {
                 } elseif (strlen(trim($ret)) == 0) {
                     $this->_force_empty_result = true;
                 } else {
-                    if($this->dsParamCACHE > 0 && $writeToCache) $cache->write($cache_id, $data, $this->dsParamCACHE);
+                    if ($this->dsParamCACHE > 0 && $writeToCache) {
+                        $cache->write($cache_id, $data, $this->dsParamCACHE);
+                    }
 
                     $result->setValue(PHP_EOL . str_repeat("\t", 2) . preg_replace('/([\r\n]+)/', "$1\t", $ret));
                     $result->setAttribute('status', ($isCacheValid === true ? 'fresh' : 'stale'));
@@ -792,7 +818,9 @@ Class RemoteDatasource extends DataSource implements iDatasource {
             $result->appendChild(new XMLElement('error', $e->getMessage()));
         }
 
-        if($this->_force_empty_result) $result = $this->emptyXMLSet();
+        if ($this->_force_empty_result) {
+            $result = $this->emptyXMLSet();
+        }
 
         $result->setAttribute('url', General::sanitize($this->dsParamURL));
 

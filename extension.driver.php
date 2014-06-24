@@ -2,7 +2,8 @@
 
 require_once EXTENSIONS . '/remote_datasource/data-sources/datasource.remote.php';
 
-Class Extension_Remote_Datasource extends Extension {
+class Extension_Remote_Datasource extends Extension
+{
 
     private static $provides = array();
 
@@ -21,9 +22,13 @@ Class Extension_Remote_Datasource extends Extension {
     {
         self::registerProviders();
 
-        if(is_null($type)) return self::$provides;
+        if (is_null($type)) {
+            return self::$provides;
+        }
 
-        if(!isset(self::$provides[$type])) return array();
+        if (!isset(self::$provides[$type])) {
+            return array();
+        }
 
         return self::$provides[$type];
     }
@@ -54,5 +59,4 @@ Class Extension_Remote_Datasource extends Extension {
 
         $context['wrapper']->appendChild($label);
     }
-
 }

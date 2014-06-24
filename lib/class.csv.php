@@ -1,6 +1,7 @@
 <?php
 
-Class CSV {
+class CSV
+{
 
     /**
      * Given a CSV file, generate a resulting XML tree
@@ -20,7 +21,9 @@ Class CSV {
         $doc->appendChild($root);
 
         foreach (str_getcsv($data, PHP_EOL) as $i => $row) {
-            if(empty($row)) continue;
+            if (empty($row)) {
+                continue;
+            }
 
             if ($i == 0) {
                 foreach (str_getcsv($row) as $i => $head) {

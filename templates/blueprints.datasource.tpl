@@ -2,7 +2,7 @@
 
 require_once(EXTENSIONS . '/remote_datasource/data-sources/datasource.remote.php');
 
-Class datasource<!-- CLASS NAME --> extends RemoteDatasource {
+class datasource<!-- CLASS NAME --> extends RemoteDatasource {
 
     public $dsParamROOTELEMENT = '%s';
     public $dsParamURL = '%s';
