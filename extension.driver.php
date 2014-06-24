@@ -1,54 +1,62 @@
 <?php
 
-	require_once EXTENSIONS . '/remote_datasource/data-sources/datasource.remote.php';
+require_once EXTENSIONS . '/remote_datasource/data-sources/datasource.remote.php';
 
-	Class Extension_Remote_Datasource extends Extension {
+class Extension_Remote_Datasource extends Extension
+{
 
-		private static $provides = array();
+    private static $provides = array();
 
-		public static function registerProviders() {
-			self::$provides = array(
-				'data-sources' => array(
-					'RemoteDatasource' => RemoteDatasource::getName()
-				)
-			);
+    public static function registerProviders()
+    {
+        self::$provides = array(
+            'data-sources' => array(
+                'RemoteDatasource' => RemoteDatasource::getName()
+            )
+        );
 
-			return true;
-		}
+        return true;
+    }
 
-		public static function providerOf($type = null) {
-			self::registerProviders();
+    public static function providerOf($type = null)
+    {
+        self::registerProviders();
 
-			if(is_null($type)) return self::$provides;
+        if (is_null($type)) {
+            return self::$provides;
+        }
 
-			if(!isset(self::$provides[$type])) return array();
+        if (!isset(self::$provides[$type])) {
+            return array();
+        }
 
-			return self::$provides[$type];
-		}
-		
-		public function getSubscribedDelegates(){
-			return array(
-				array(
-					'page'		=> '/system/preferences/',
-					'delegate'	=> 'AddCachingOpportunity',
-					'callback'	=> 'addCachingOpportunity'
-				)
-			);
-		}
+        return self::$provides[$type];
+    }
 
-		public function addCachingOpportunity($context) {
-			$current_cache = Symphony::Configuration()->get('remotedatasource', 'caching');
-			$label = Widget::Label(__('Remote Datasource'));
+    public function getSubscribedDelegates()
+    {
+        return array(
+            array(
+                'page'		=> '/system/preferences/',
+                'delegate'	=> 'AddCachingOpportunity',
+                'callback'	=> 'addCachingOpportunity'
+            )
+        );
+    }
 
-			$options = array();
-			foreach($context['available_caches'] as $handle => $cache_name) {
-				$options[] = array($handle, ($current_cache == $handle || (!isset($current_cache) && $handle === 'database')), $cache_name);
-			}
+    public function addCachingOpportunity($context)
+    {
+        $current_cache = Symphony::Configuration()->get('remotedatasource', 'caching');
+        $label = Widget::Label(__('Remote Datasource'));
 
-			$select = Widget::Select('settings[caching][remotedatasource]', $options, array('class' => 'picker'));
-			$label->appendChild($select);
+        $options = array();
+        foreach ($context['available_caches'] as $handle => $cache_name) {
+            $options[] = array($handle, ($current_cache == $handle || (!isset($current_cache) && $handle === 'database')), $cache_name);
+        }
 
-			$context['wrapper']->appendChild($label);
-		}
+        $select = Widget::Select('settings[caching][remotedatasource]', $options, array('class' => 'picker'));
+        $label->appendChild($select);
 
-	}
+        $context['wrapper']->appendChild($label);
+    }
+}
