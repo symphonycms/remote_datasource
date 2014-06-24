@@ -9,7 +9,7 @@
 		</author>
 	</authors>
 	<releases>
-		<release version="2.0.1" date="2014-06-17" min="2.4">
+		<release version="2.0.1" date="2014-06-24" min="2.4">
 			- Clean-up
 		</release>
 		<release version="2.0.0" date="2014-05-06" min="2.4">
