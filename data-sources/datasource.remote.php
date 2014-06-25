@@ -132,7 +132,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                 $gateway->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
             }
 
-            static::prepareGateway($gateway);
+            self::prepareGateway($gateway);
 
             $data = $gateway->exec();
             $info = $gateway->getInfoLast();
@@ -319,7 +319,7 @@ class RemoteDatasource extends DataSource implements iDatasource
         $label = Widget::Label(__('Timeout'));
         $label->setAttribute('class', 'column');
 
-        $help = new XMLElement('i', __('in minutes'));
+        $help = new XMLElement('i', __('in seconds'));
         $label->appendChild($help);
 
         $timeout_time = isset($settings[self::getClass()]['timeout'])
@@ -366,7 +366,8 @@ class RemoteDatasource extends DataSource implements iDatasource
             Widget::Select('fields[' . self::getClass() . '][format]', array(
                 array('xml', $settings[self::getClass()]['format'] == 'xml', 'XML'),
                 array('json', $settings[self::getClass()]['format'] == 'json', 'JSON'),
-                array('csv', $settings[self::getClass()]['format'] == 'csv', 'CSV')
+                array('csv', $settings[self::getClass()]['format'] == 'csv', 'CSV'),
+                array('txt', $settings[self::getClass()]['format'] == 'txt', 'TEXT')
             ), array(
                 'class' => 'picker'
             ))
@@ -662,7 +663,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                         $ch->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
                     }
 
-                    $this->prepareGateway($ch);
+                    self::prepareGateway($ch);
 
                     $data = $ch->exec();
                     $info = $ch->getInfoLast();
@@ -721,8 +722,13 @@ class RemoteDatasource extends DataSource implements iDatasource
                                     array('message' => $ex->getMessage())
                                 );
                             }
-                        } elseif (!General::validateXML($data, $errors, false, new XsltProcess)) {
-                         
+                        } elseif ($this->dsParamFORMAT == 'txt') {
+                        	$txtElement = new XMLElement('entry');
+                        	$txtElement->setValue(General::wrapInCDATA($data));
+                        	$data = $txtElement->generate();
+                        	$txtElement = null;
+                        } 
+                        else if (!General::validateXML($data, $errors, false, new XsltProcess)) {
                             // If the XML doesn't validate..
                             $writeToCache = false;
                         }

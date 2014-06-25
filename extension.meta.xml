@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension id="remote_datasource" status="released" xmlns="http://getsymphony.com/schemas/extension/1.0">
 	<name>Remote Datasource</name>
-	<description>A datasource that consumes XML, JSON or CSV content.</description>
+	<description>A datasource that consumes XML, JSON, CSV or TEXT content.</description>
 	<repo type="github">https://github.com/symphonycms/remote_datasource</repo>
+	<url type="issues">https://github.com/symphonycms/remote_datasource/issues</url>
 	<authors>
 		<author>
 			<name github="symphonycms" symphony="team">Symphony Team</name>
 		</author>
 	</authors>
 	<releases>
+		<release version="2.1.0" date="2014-06-25" min="2.4">
+			- Add support for text format (a copy of the html response body)
+			- Add some documentation
+		</release>
 		<release version="2.0.1" date="2014-06-24" min="2.4">
 			- Clean-up
 		</release>
