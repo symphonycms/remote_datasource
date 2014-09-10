@@ -35,4 +35,14 @@ public static function prepareGateway(&$gateway) {}
  *  the parsed xml string data returned by the Gateway by reference
  */
 public function exposeData(&$data) {}
+
+/**
+ * This method is called when their is an http error
+ * or when content type is unsupported
+ *
+ * @since Remote Datasource 2.0
+ * @param array $info
+ *  info of the http request
+ */
+public function httpError(&$info) {}
 ````

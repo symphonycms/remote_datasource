@@ -70,6 +70,19 @@ class RemoteDatasource extends DataSource implements iDatasource
     {
 
     }
+	
+	/**
+     * This method is called when their is an http error
+     * or when content type is unsupported
+     *
+     * @since Remote Datasource 2.0
+     * @param array $info
+     *  info of the http request
+     */
+    public function httpError(&$info)
+    {
+    
+    }
 
 /*-------------------------------------------------------------------------
     Utilities
@@ -678,6 +691,8 @@ class RemoteDatasource extends DataSource implements iDatasource
                         $writeToCache = false;
 
                         $result->setAttribute('valid', 'false');
+						
+						$this->httpError($info);
 
                         // 28 is CURLE_OPERATION_TIMEOUTED
                         if ($info['curl_error'] == 28) {
