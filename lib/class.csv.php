@@ -50,19 +50,17 @@ class CSV
      */
     public static function addRow(DOMDocument $doc, DOMElement $root, $row, $headers)
     {
-        foreach ($row as $column) {
-            // Create <entry><header>value</header></entry>
-            $entry = $doc->createElement('entry');
+        // Create <entry><header>value</header></entry>
+        $entry = $doc->createElement('entry');
 
-            foreach ($headers as $i => $header) {
-                $col = $doc->createElement($header);
-                $col = $entry->appendChild($col);
+        foreach ($headers as $i => $header) {
+            $col = $doc->createElement($header);
+            $col = $entry->appendChild($col);
 
-                $value = $doc->createTextNode($row[$i]);
-                $value = $col->appendChild($value);
-            }
-
-            $root->appendChild($entry);
+            $value = $doc->createTextNode($row[$i]);
+            $value = $col->appendChild($value);
         }
+
+        $root->appendChild($entry);
     }
 }
