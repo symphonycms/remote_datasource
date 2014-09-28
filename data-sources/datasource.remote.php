@@ -70,8 +70,8 @@ class RemoteDatasource extends DataSource implements iDatasource
     {
 
     }
-	
-	/**
+
+    /**
      * This method is called when their is an http error
      * or when content type is unsupported
      *
@@ -81,7 +81,7 @@ class RemoteDatasource extends DataSource implements iDatasource
      */
     public function httpError(&$info)
     {
-    
+
     }
 
 /*-------------------------------------------------------------------------
@@ -239,7 +239,7 @@ class RemoteDatasource extends DataSource implements iDatasource
      */
     public static function buildCacheInformation(XMLElement $wrapper, Cacheable $cache, $cache_id)
     {
-        $cachedData = $cache->check($cache_id);
+        $cachedData = $cache->read($cache_id);
 
         if (is_array($cachedData) && !empty($cachedData) && (time() < $cachedData['expiry'])) {
             $a = Widget::Anchor(__('Clear now'), SYMPHONY_URL . getCurrentPage() . 'clear_cache/');
@@ -269,7 +269,7 @@ class RemoteDatasource extends DataSource implements iDatasource
 
         // If `clear_cache` is set, clear it..
         if (isset($cache_id) && in_array('clear_cache', Administration::instance()->Page->getContext())) {
-            $cache->forceExpiry($cache_id);
+            $cache->delete($cache_id);
             Administration::instance()->Page->pageAlert(
                 __('Data source cache cleared at %s.', array(Widget::Time()->generate()))
                 . '<a href="' . SYMPHONY_URL . '/blueprints/datasources/" accesskey="a">'
@@ -652,7 +652,7 @@ class RemoteDatasource extends DataSource implements iDatasource
             // Check for an existing Cache for this Datasource
             $cache_id = self::buildCacheID($this);
             $cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
-            $cachedData = $cache->check($cache_id);
+            $cachedData = $cache->read($cache_id);
             $writeToCache = null;
             $isCacheValid = true;
             $creation = DateTimeObj::get('c');
@@ -691,7 +691,6 @@ class RemoteDatasource extends DataSource implements iDatasource
                         $writeToCache = false;
 
                         $result->setAttribute('valid', 'false');
-                        
                         $this->httpError($info);
 
                         // 28 is CURLE_OPERATION_TIMEOUTED
@@ -712,9 +711,9 @@ class RemoteDatasource extends DataSource implements iDatasource
                         }
 
                         return $result;
-                    } else if (strlen($data) > 0) {
 
-                        // Handle where there is `$data`
+                    // Handle where there is `$data`
+                    } else if (strlen($data) > 0) {
 
                         // If it's JSON, convert it to XML
                         if ($this->dsParamFORMAT == 'json') {
@@ -738,12 +737,11 @@ class RemoteDatasource extends DataSource implements iDatasource
                                 );
                             }
                         } elseif ($this->dsParamFORMAT == 'txt') {
-                        	$txtElement = new XMLElement('entry');
-                        	$txtElement->setValue(General::wrapInCDATA($data));
-                        	$data = $txtElement->generate();
-                        	$txtElement = null;
-                        } 
-                        else if (!General::validateXML($data, $errors, false, new XsltProcess)) {
+                            $txtElement = new XMLElement('entry');
+                            $txtElement->setValue(General::wrapInCDATA($data));
+                            $data = $txtElement->generate();
+                            $txtElement = null;
+                        } else if (!General::validateXML($data, $errors, false, new XsltProcess)) {
                             // If the XML doesn't validate..
                             $writeToCache = false;
                         }
@@ -759,7 +757,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                                 if (strlen(trim($e['message'])) == 0) {
                                     continue;
                                 }
-                                
+
                                 $error->appendChild(new XMLElement('item', General::sanitize($e['message'])));
                             }
 
@@ -768,19 +766,19 @@ class RemoteDatasource extends DataSource implements iDatasource
                             return $result;
                         }
                     } elseif (strlen($data) == 0) {
-    
+
                         // If `$data` is empty, set the `force_empty_result` to true.
                         $this->_force_empty_result = true;
                     }
                 } else {
-    
+
                     // Failed to acquire a lock
                     $result->appendChild(
                         new XMLElement('error', __('The %s class failed to acquire a lock.', array('<code>Mutex</code>')))
                     );
                 }
             } else {
-    
+
                 // The cache is good, use it!
                 $data = trim($cachedData['data']);
                 $creation = DateTimeObj::get('c', $cachedData['creation']);
