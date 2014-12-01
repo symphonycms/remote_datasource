@@ -578,7 +578,8 @@ class RemoteDatasource extends DataSource implements iDatasource
             $settings['namespaces'] = $namespaces;
             $cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
             $cache_id = self::buildCacheID($settings);
-            $cache->write($cache_id, self::$url_result, $settings['cache']);
+            $data = self::transformResult(self::$url_result, $settings['format']);
+            $cache->write($cache_id, $data, $settings['cache']);
         }
 
         return sprintf(
@@ -714,46 +715,18 @@ class RemoteDatasource extends DataSource implements iDatasource
 
                     // Handle where there is `$data`
                     } else if (strlen($data) > 0) {
-
-                        // If it's JSON, convert it to XML
-                        if ($this->dsParamFORMAT == 'json') {
-                            try {
-                                require_once TOOLKIT . '/class.json.php';
-                                $data = JSON::convertToXML($data);
-                            } catch (Exception $ex) {
-                                $writeToCache = false;
-                                $errors = array(
-                                    array('message' => $ex->getMessage())
-                                );
-                            }
-                        } elseif ($this->dsParamFORMAT == 'csv') {
-                            try {
-                                require_once EXTENSIONS . '/remote_datasource/lib/class.csv.php';
-                                $data = CSV::convertToXML($data);
-                            } catch (Exception $ex) {
-                                $writeToCache = false;
-                                $errors = array(
-                                    array('message' => $ex->getMessage())
-                                );
-                            }
-                        } elseif ($this->dsParamFORMAT == 'txt') {
-                            $txtElement = new XMLElement('entry');
-                            $txtElement->setValue(General::wrapInCDATA($data));
-                            $data = $txtElement->generate();
-                            $txtElement = null;
-                        } else if (!General::validateXML($data, $errors, false, new XsltProcess)) {
-                            // If the XML doesn't validate..
-                            $writeToCache = false;
+                        try {
+                            $data = self::transformResult($data, $this->dsParamFORMAT);
                         }
-
                         // If the `$data` is invalid, return a result explaining why
-                        if ($writeToCache === false) {
+                        catch (TransformException $ex) {
+                            $writeToCache = false;
                             $error = new XMLElement('errors');
                             $error->setAttribute('valid', 'false');
 
                             $error->appendChild(new XMLElement('error', __('Data returned is invalid.')));
 
-                            foreach ($errors as $e) {
+                            foreach ($ex->getErrors() as $e) {
                                 if (strlen(trim($e['message'])) == 0) {
                                     continue;
                                 }
@@ -765,21 +738,21 @@ class RemoteDatasource extends DataSource implements iDatasource
 
                             return $result;
                         }
-                    } elseif (strlen($data) == 0) {
 
-                        // If `$data` is empty, set the `force_empty_result` to true.
+                    // If `$data` is empty, set the `force_empty_result` to true.
+                    } elseif (strlen($data) == 0) {
                         $this->_force_empty_result = true;
                     }
-                } else {
 
-                    // Failed to acquire a lock
+                // Failed to acquire a lock
+                } else {
                     $result->appendChild(
                         new XMLElement('error', __('The %s class failed to acquire a lock.', array('<code>Mutex</code>')))
                     );
                 }
-            } else {
 
-                // The cache is good, use it!
+            // The cache is good, use it!
+            } else {
                 $data = trim($cachedData['data']);
                 $creation = DateTimeObj::get('c', $cachedData['creation']);
             }
@@ -844,6 +817,27 @@ class RemoteDatasource extends DataSource implements iDatasource
         $result->setAttribute('url', General::sanitize($this->dsParamURL));
 
         return $result;
+    }
+
+    /**
+     * Given the result (a string), and a desired format, this
+     * function will transform it to the desired format and return
+     * it.
+     * @param string $data
+     * @param string $format
+     * @return string
+     */
+    public static function transformResult($data, $format)
+    {
+        $transformer = EXTENSIONS . '/remote_datasource/lib/class.' . strtolower($format) . '.php';
+
+        if (file_exists($transformer)) {
+            $classname = require_once $transformer;
+            $classname = new $classname;
+            $data = $classname->transform($data);
+        }
+
+        return $data;
     }
 }
 

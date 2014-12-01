@@ -1,7 +1,22 @@
 <?php
 
-class CSV
+require_once __DIR__ . '/interface.transformer.php';
+require_once __DIR__ . '/class.transformexception.php';
+
+class CSVFormatter implements Transformer
 {
+    public function transform($data)
+    {
+        try {
+            $data = self::convertToXML($data);
+        } catch (Exception $ex) {
+            throw new TransformException($ex->getMessage(), array(
+                'message' => $ex->getMessages()
+            ));
+        }
+
+        return $data;
+    }
 
     /**
      * Given a CSV file, generate a resulting XML tree
@@ -64,3 +79,5 @@ class CSV
         $root->appendChild($entry);
     }
 }
+
+return 'CSVFormatter';
