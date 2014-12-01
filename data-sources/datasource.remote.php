@@ -6,8 +6,8 @@ require_once FACE . '/interface.datasource.php';
 class RemoteDatasource extends DataSource implements iDatasource
 {
 
+    private static $transformer = null;
     private static $url_result = null;
-
     private static $cacheable = null;
 
     public static function getName()
@@ -132,23 +132,7 @@ class RemoteDatasource extends DataSource implements iDatasource
         if (trim($url) == '') {
             return __('This is a required field');
         } elseif ($fetch_URL === true) {
-            $gateway = new Gateway;
-            $gateway->init($url);
-            $gateway->setopt('TIMEOUT', $timeout);
-
-            // Set the approtiate Accept: headers depending on the format of the URL.
-            if ($format == 'xml') {
-                $gateway->setopt('HTTPHEADER', array('Accept: text/xml, */*'));
-            } elseif ($format == 'json') {
-                $gateway->setopt('HTTPHEADER', array('Accept: application/json, */*'));
-            } elseif ($format == 'csv') {
-                $gateway->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
-            }
-
-            self::prepareGateway($gateway);
-
-            $data = $gateway->exec();
-            $info = $gateway->getInfoLast();
+            list($data, $info) = self::fetch($url, $format, $timeout);
 
             // 28 is CURLE_OPERATION_TIMEOUTED
             if (isset($info['curl_error']) && $info['curl_error'] == 28) {
@@ -664,27 +648,8 @@ class RemoteDatasource extends DataSource implements iDatasource
                 || (time() - $cachedData['creation']) > ($this->dsParamCACHE * 60) // The cache is old.
             ) {
                 if (Mutex::acquire($cache_id, $this->dsParamTIMEOUT, TMP)) {
-                    $ch = new Gateway;
-                    $ch->init($this->dsParamURL);
-                    $ch->setopt('TIMEOUT', $this->dsParamTIMEOUT);
-
-                    // Set the approtiate Accept: headers depending on the format of the URL.
-                    if ($this->dsParamFORMAT == 'xml') {
-                        $ch->setopt('HTTPHEADER', array('Accept: text/xml, */*'));
-                    } elseif ($this->dsParamFORMAT == 'json') {
-                        $ch->setopt('HTTPHEADER', array('Accept: application/json, */*'));
-                    } elseif ($this->dsParamFORMAT == 'csv') {
-                        $ch->setopt('HTTPHEADER', array('Accept: text/csv, */*'));
-                    }
-
-                    self::prepareGateway($ch);
-
-                    $data = $ch->exec();
-                    $info = $ch->getInfoLast();
-
+                    list($data, $info) = self::fetch($this->dsParamURL, $this->dsParamFORMAT, $this->dsParamTIMEOUT);
                     Mutex::release($cache_id, TMP);
-
-                    $data = trim($data);
                     $writeToCache = true;
 
                     // Handle any response that is not a 200, or the content type does not include XML, JSON, plain or text
@@ -820,6 +785,35 @@ class RemoteDatasource extends DataSource implements iDatasource
     }
 
     /**
+     * Given a URL, Format and Timeout, this function will initalise
+     * Symphony's Gateway class to retrieve the contents of the URL.
+     *
+     * @param string $url
+     * @param string $format
+     * @param integer $timeout
+     * @return array
+     */
+    public static function fetch($url, $format, $timeout)
+    {
+        $ch = new Gateway;
+        $ch->init($url);
+        $ch->setopt('TIMEOUT', $timeout);
+
+        // Set the approtiate Accept: headers depending on the format of the URL.
+        if ($transformer = self::getTransformer($format)) {
+            $accepts = $transformer->accepts();
+            $ch->setopt('HTTPHEADER', array('Accept: ' . $accepts));
+        }
+
+        self::prepareGateway($ch);
+
+        return array(
+            trim($ch->exec()),
+            $ch->getInfoLast()
+        );
+    }
+
+    /**
      * Given the result (a string), and a desired format, this
      * function will transform it to the desired format and return
      * it.
@@ -829,15 +823,34 @@ class RemoteDatasource extends DataSource implements iDatasource
      */
     public static function transformResult($data, $format)
     {
-        $transformer = EXTENSIONS . '/remote_datasource/lib/class.' . strtolower($format) . '.php';
-
-        if (file_exists($transformer)) {
-            $classname = require_once $transformer;
-            $classname = new $classname;
-            $data = $classname->transform($data);
+        if ($transformer = self::getTransformer($format)) {
+            $data = $transformer->transform($data);
+        } else {
+            $data = '';
         }
 
         return $data;
+    }
+
+    /**
+     * Given the format, this function will look for the file
+     * and create a new transformer.
+     *
+     * @param string $format
+     * @return Transformer
+     */
+    public static function getTransformer($format)
+    {
+        $transformer = EXTENSIONS . '/remote_datasource/lib/class.' . strtolower($format) . '.php';
+
+        if (!isset(self::$transformer)) {
+            if (file_exists($transformer)) {
+                $classname = require_once $transformer;
+                self::$transformer = new $classname;
+            }
+        }
+
+        return self::$transformer;
     }
 }
 

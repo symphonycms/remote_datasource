@@ -5,6 +5,11 @@ require_once __DIR__ . '/class.transformexception.php';
 
 class CSVFormatter implements Transformer
 {
+    public function accepts()
+    {
+        return 'text/csv, */*';
+    }
+
     public function transform($data)
     {
         try {
