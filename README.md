@@ -1,6 +1,6 @@
 # Remote Datasource
 
-#### Version 2.1
+#### Version 2.1.2
 
 The Remote Datasource allows you to consume XML, JSON, CSV and TXT sources in Symphony. This extension aims to build upon the Dynamic XML datasource functionality provided in Symphony to allow better cache control, the automatic discovery of namespaces and more flexibility.
 
