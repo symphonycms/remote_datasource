@@ -10,6 +10,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="2.1.2" date="2015-05-13" min="2.4" max="2.6.x">
+			- Fix a bug with late static binding on PHP 5.3.
+		</release>
 		<release version="2.1.1" date="2014-09-28" min="2.4">
 			- Expose the CURL error via `httpError()`
 			- Fix error with CSV importing
