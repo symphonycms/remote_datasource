@@ -805,7 +805,9 @@ class RemoteDatasource extends DataSource implements iDatasource
             $ch->setopt('HTTPHEADER', array('Accept: ' . $accepts));
         }
 
-        self::prepareGateway($ch);
+        // use static here to allow late static binding
+        // see http://php.net/manual/en/language.oop5.late-static-bindings.php
+        static::prepareGateway($ch);
 
         return array(
             trim($ch->exec()),
