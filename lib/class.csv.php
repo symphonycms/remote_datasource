@@ -1,7 +1,27 @@
 <?php
 
-class CSV
+require_once __DIR__ . '/interface.transformer.php';
+require_once __DIR__ . '/class.transformexception.php';
+
+class CSVFormatter implements Transformer
 {
+    public function accepts()
+    {
+        return 'text/csv, */*';
+    }
+
+    public function transform($data)
+    {
+        try {
+            $data = self::convertToXML($data);
+        } catch (Exception $ex) {
+            throw new TransformException($ex->getMessage(), array(
+                'message' => $ex->getMessages()
+            ));
+        }
+
+        return $data;
+    }
 
     /**
      * Given a CSV file, generate a resulting XML tree
@@ -50,19 +70,19 @@ class CSV
      */
     public static function addRow(DOMDocument $doc, DOMElement $root, $row, $headers)
     {
-        foreach ($row as $column) {
-            // Create <entry><header>value</header></entry>
-            $entry = $doc->createElement('entry');
+        // Create <entry><header>value</header></entry>
+        $entry = $doc->createElement('entry');
 
-            foreach ($headers as $i => $header) {
-                $col = $doc->createElement($header);
-                $col = $entry->appendChild($col);
+        foreach ($headers as $i => $header) {
+            $col = $doc->createElement($header);
+            $col = $entry->appendChild($col);
 
-                $value = $doc->createTextNode($row[$i]);
-                $value = $col->appendChild($value);
-            }
-
-            $root->appendChild($entry);
+            $value = $doc->createTextNode($row[$i]);
+            $value = $col->appendChild($value);
         }
+
+        $root->appendChild($entry);
     }
 }
+
+return 'CSVFormatter';

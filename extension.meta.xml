@@ -10,6 +10,14 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="2.1.2" date="2014-12-17" min="2.4" max="2.6.x">
+			- Fix the first cache of a result always resulting in an error
+			- Abstract the transformers for better extensibility
+		</release>
+		<release version="2.1.1" date="2014-09-28" min="2.4">
+			- Expose the CURL error via `httpError()`
+			- Fix error with CSV importing
+		</release>
 		<release version="2.1.0" date="2014-06-25" min="2.4">
 			- Add support for text format (a copy of the html response body)
 			- Add some documentation
