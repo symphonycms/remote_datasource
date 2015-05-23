@@ -17,7 +17,7 @@ Class JSONFormatter implements Transformer
             $data = JSON::convertToXML($data);
         } catch (Exception $ex) {
             throw new TransformException($ex->getMessage(), array(
-                'message' => $ex->getMessages()
+                'message' => $ex->getMessage()
             ));
         }
 

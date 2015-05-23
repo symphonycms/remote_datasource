@@ -35,6 +35,7 @@ class RemoteDatasource extends DataSource implements iDatasource
         $settings = array();
 
         $settings[self::getClass()]['namespaces'] = $this->dsParamNAMESPACES;
+        $settings[self::getClass()]['paramoutput'] = $this->dsParamOUTPUTPARAM;
         $settings[self::getClass()]['url'] = $this->dsParamURL;
         $settings[self::getClass()]['xpath'] = isset($this->dsParamXPATH) ? $this->dsParamXPATH : '/';
         $settings[self::getClass()]['cache'] = isset($this->dsParamCACHE) ? $this->dsParamCACHE : 30;
@@ -170,10 +171,42 @@ class RemoteDatasource extends DataSource implements iDatasource
                 continue;
             }
 
-            $string .= "\t\t\t'$key' => '" . addslashes($val) . "'," . PHP_EOL;
+            $string .= str_repeat(' ', 8) . "'$key' => '" . addslashes($val) . "'," . PHP_EOL;
         }
 
-        $string .= "\t\t);" . PHP_EOL . "\t\t" . $placeholder;
+        $string .= str_repeat(' ', 4) . ");" . PHP_EOL . str_repeat(' ', 4) . $placeholder;
+        $template = str_replace($placeholder, trim($string), $template);
+    }
+
+    /**
+     * Builds the output parameters out to be saved in the Datasource file
+     *
+     * @param array $paramoutput
+     *  An associative array of where the key is the parameter name
+     *  and the value is the xpath
+     * @param string $template
+     *  The template file, as defined by `getTemplate()`
+     * @return string
+     *  The template injected with the Namespaces (if any).
+     */
+    public static function injectOutputParameters(array $paramoutput, &$template)
+    {
+        if (empty($paramoutput)) {
+            return;
+        }
+
+        $placeholder = '<!-- PARAMOUTPUT -->';
+        $string = 'public $dsParamOUTPUTPARAM = array(' . PHP_EOL;
+
+        foreach ($paramoutput as $key => $val) {
+            if (trim($val) == '') {
+                continue;
+            }
+
+            $string .= str_repeat(' ', 8) . "'$key' => '" . addslashes($val) . "'," . PHP_EOL;
+        }
+
+        $string .= str_repeat(' ', 4) . ");" . PHP_EOL . str_repeat(' ', 4) . $placeholder;
         $template = str_replace($placeholder, trim($string), $template);
     }
 
@@ -193,6 +226,7 @@ class RemoteDatasource extends DataSource implements iDatasource
             $cache_id = md5(
                 $settings->dsParamURL .
                 serialize($settings->dsParamNAMESPACES) .
+                serialize($settings->dsParamPARAMOUTPUT) .
                 $settings->dsParamXPATH .
                 $settings->dsParamFORMAT
             );
@@ -203,9 +237,15 @@ class RemoteDatasource extends DataSource implements iDatasource
                 $settings['namespaces'] = null;
             }
 
+            // Same deal with output parameters
+            if (is_array($settings['paramoutput']) && empty($settings['paramoutput'])) {
+                $settings['paramoutput'] = null;
+            }
+
             $cache_id = md5(
                 $settings['url'] .
                 serialize($settings['namespaces']) .
+                serialize($settings['paramoutput']) .
                 stripslashes($settings['xpath']) .
                 $settings['format']
             );
@@ -376,6 +416,28 @@ class RemoteDatasource extends DataSource implements iDatasource
         }
 
         // Namespaces
+        static::addNamespaces($fieldset, $errors, $settings, $handle);
+
+        // Output Parameters
+        static::addOutputParameters($fieldset, $errors, $settings, $handle);
+
+        // Check for existing Cache objects
+        if (isset($cache_id)) {
+            static::buildCacheInformation($fieldset, $cache, $cache_id);
+        }
+
+        $wrapper->appendChild($fieldset);
+    }
+
+    /**
+     * Creates the markup for a Namespaces duplicator in the Remote Datasource editor.
+     *
+     * @param XMLElement $wrapper
+     * @param array $errors
+     * @param array $settings
+     * @param string $handle
+     */
+    protected static function addNamespaces(XMLElement $wrapper, array &$errors = array(), array $settings = null, $handle = null) {
         $div = new XMLElement('div', false, array(
             'id' => 'xml',
             'class' => 'pickable'
@@ -403,68 +465,179 @@ class RemoteDatasource extends DataSource implements iDatasource
                     $uri = $uri['uri'];
                 }
 
-                $li = new XMLElement('li');
-                $li->setAttribute('class', 'instance');
-                $header = new XMLElement('header');
-                $header->appendChild(
-                    new XMLElement('h4', __('Namespace'))
-                );
-                $li->appendChild($header);
+                $name = General::sanitize($name);
+                $uri = General::sanitize($uri);
 
-                $group = new XMLElement('div');
-                $group->setAttribute('class', 'two columns');
-
-                $label = Widget::Label(__('Name'));
-                $label->setAttribute('class', 'column');
-                $label->appendChild(Widget::Input("fields[" . self::getClass() . "][namespaces][$ii][name]", General::sanitize($name)));
-                $group->appendChild($label);
-
-                $label = Widget::Label(__('URI'));
-                $label->setAttribute('class', 'column');
-                $label->appendChild(Widget::Input("fields[" . self::getClass() . "][namespaces][$ii][uri]", General::sanitize($uri)));
-                $group->appendChild($label);
-
-                $li->appendChild($group);
+                $li = static::addNamespaceDuplicatorItem(false, $ii, $name, $uri);
                 $ol->appendChild($li);
                 $ii++;
             }
         }
 
+        // Add the template
+        $li = static::addNamespaceDuplicatorItem();
+        $ol->appendChild($li);
+
+        $frame->appendChild($ol);
+        $div->appendChild($frame);
+
+        $wrapper->appendChild($div);
+    }
+
+    /**
+     * Creates the duplicator item, both the template or the actual instance.
+     *
+     * @param boolean $template
+     *  If this is the template, set to `true` (which it is by default)
+     * @param string|integer $key
+     *  Used with instances, helps maintain the position of the duplicator item
+     * @param string $name
+     *  The namespace name (by default null)
+     * @param string $uri
+     *  The matching URI for this namespace
+     * @return XMLElement
+     */
+    protected static function addNamespaceDuplicatorItem($template = true, $key = '-1', $name = null, $uri = null) {
+
         $li = new XMLElement('li');
-        $li->setAttribute('class', 'template');
-        $li->setAttribute('data-type', 'namespace');
+
+        // Is this a template or the real deal?
+        if ($template) {
+            $li->setAttribute('class', 'template');
+            $li->setAttribute('data-type', 'namespace');
+        }
+        else {
+            $li->setAttribute('class', 'instance');
+        }
+
+        // Header
         $header = new XMLElement('header');
         $header->appendChild(
             new XMLElement('h4', __('Namespace'))
         );
         $li->appendChild($header);
 
+        // Actual duplicator content (visible only when expanded)
         $group = new XMLElement('div');
         $group->setAttribute('class', 'two columns');
 
         $label = Widget::Label(__('Name'));
         $label->setAttribute('class', 'column');
-        $label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespaces][-1][name]'));
+        $label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespaces][' . $key . '][name]', $name));
         $group->appendChild($label);
 
         $label = Widget::Label(__('URI'));
         $label->setAttribute('class', 'column');
-        $label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespaces][-1][uri]'));
+        $label->appendChild(Widget::Input('fields[' . self::getClass() . '][namespaces][' . $key . '][uri]', $uri));
         $group->appendChild($label);
 
         $li->appendChild($group);
+
+        return $li;
+    }
+
+    /**
+     * Creates the markup for the Output Parameters duplicator in the Remote Datasource editor.
+     *
+     * @param XMLElement $wrapper
+     * @param array $errors
+     * @param array $settings
+     * @param string $handle
+     */
+    protected static function addOutputParameters(XMLElement $wrapper, array &$errors = array(), array $settings = null, $handle = null) {
+        $div = new XMLElement('div', false, array(
+            'id' => 'xml',
+            'class' => 'pickable'
+        ));
+        $p = new XMLElement('p', __('Output Parameters'));
+        $p->appendChild(new XMLElement('i', __('optional')));
+        $p->setAttribute('class', 'label');
+        $div->appendChild($p);
+
+        $frame = new XMLElement('div', null, array('class' => 'frame filters-duplicator'));
+        $frame->setAttribute('data-interactive', 'data-interactive');
+
+        $ol = new XMLElement('ol');
+        $ol->setAttribute('data-add', __('Add output parameter'));
+        $ol->setAttribute('data-remove', __('Remove output parameter'));
+
+        if (isset($settings[self::getClass()], $settings[self::getClass()]['paramoutput']) && is_array($settings[self::getClass()]['paramoutput']) && !empty($settings[self::getClass()]['paramoutput'])) {
+            $ii = 0;
+            foreach ($settings[self::getClass()]['paramoutput'] as $param => $xpath) {
+                if (is_array($param)) {
+                    $param = $xpath['param'];
+                    $xpath = $xpath['xpath'];
+                }
+
+                $param = General::sanitize($param);
+                $xpath = General::sanitize($xpath);
+
+                $li = static::addOutputParameterDuplicatorItem(false, $ii, $param, $xpath);
+                $ol->appendChild($li);
+                $ii++;
+            }
+        }
+
+        // Add the template
+        $li = static::addOutputParameterDuplicatorItem();
         $ol->appendChild($li);
 
         $frame->appendChild($ol);
         $div->appendChild($frame);
-        $fieldset->appendChild($div);
 
-        // Check for existing Cache objects
-        if (isset($cache_id)) {
-            self::buildCacheInformation($fieldset, $cache, $cache_id);
+        $wrapper->appendChild($div);
+    }
+
+    /**
+     * Creates the duplicator item, both the template or the actual instance.
+     *
+     * @param boolean $template
+     *  If this is the template, set to `true` (which it is by default)
+     * @param string|integer $key
+     *  Used with instances, helps maintain the position of the duplicator item
+     * @param string $param
+     *  The namespace name (by default null)
+     * @param string $xpath
+     *  The matching URI for this namespace
+     * @return XMLElement
+     */
+    protected static function addOutputParameterDuplicatorItem($template = true, $key = '-1', $param = null, $xpath = null) {
+
+        $li = new XMLElement('li');
+
+        // Is this a template or the real deal?
+        if ($template) {
+            $li->setAttribute('class', 'template');
+            $li->setAttribute('data-type', 'paramoutput');
+        }
+        else {
+            $li->setAttribute('class', 'instance');
         }
 
-        $wrapper->appendChild($fieldset);
+        // Header
+        $header = new XMLElement('header');
+        $header->appendChild(
+            new XMLElement('h4', __('Output Parameter'))
+        );
+        $li->appendChild($header);
+
+        // Actual duplicator content (visible only when expanded)
+        $group = new XMLElement('div');
+        $group->setAttribute('class', 'two columns');
+
+        $label = Widget::Label(__('Parameter name'));
+        $label->setAttribute('class', 'column');
+        $label->appendChild(Widget::Input('fields[' . self::getClass() . '][paramoutput][' . $key . '][name]', $param));
+        $group->appendChild($label);
+
+        $label = Widget::Label(__('XPath'));
+        $label->setAttribute('class', 'column');
+        $label->appendChild(Widget::Input('fields[' . self::getClass() . '][paramoutput][' . $key . '][xpath]', $xpath));
+        $group->appendChild($label);
+
+        $li->appendChild($group);
+
+        return $li;
     }
 
     public static function validate(array &$settings, array &$errors)
@@ -510,6 +683,11 @@ class RemoteDatasource extends DataSource implements iDatasource
     {
         $settings = $settings[self::getClass()];
 
+        // Timeout
+        $timeout = isset($settings['timeout'])
+            ? (int) $settings['timeout']
+            : 6;
+
         // Automatically detect namespaces
         if (!is_null(self::$url_result)) {
             preg_match_all('/xmlns:([a-z][a-z-0-9\-]*)="([^\"]+)"/i', self::$url_result, $matches);
@@ -544,6 +722,7 @@ class RemoteDatasource extends DataSource implements iDatasource
             }
         }
 
+        // Namespace
         $namespaces = array();
         if (is_array($settings['namespaces'])) {
             foreach ($settings['namespaces'] as $index => $data) {
@@ -552,14 +731,22 @@ class RemoteDatasource extends DataSource implements iDatasource
         }
         self::injectNamespaces($namespaces, $template);
 
-        $timeout = isset($settings['timeout'])
-            ? (int) $settings['timeout']
-            : 6;
+        // Output params
+        $outputparams = array();
+        if (is_array($settings['paramoutput'])) {
+            foreach ($settings['paramoutput'] as $index => $data) {
+                $outputparams[$data['name']] = $data['xpath'];
+            }
+        }
+        self::injectOutputParameters($outputparams, $template);
 
         // If there is valid data, save it to cache so that it is available
         // immediately to the frontend
         if (!is_null(self::$url_result)) {
-            $settings['namespaces'] = $namespaces;
+            $settings = array_merge($settings, array(
+                'namespaces' => $namespaces,
+                'paramoutput' => $outputparams
+            ));
             $cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
             $cache_id = self::buildCacheID($settings);
             $data = self::transformResult(self::$url_result, $settings['format']);
@@ -765,6 +952,10 @@ class RemoteDatasource extends DataSource implements iDatasource
                         $cache->write($cache_id, $data, $this->dsParamCACHE);
                     }
 
+                    if (!empty($this->dsParamOUTPUTPARAM)) {
+                        $this->processOutputParameters($ret, $param_pool);
+                    }
+
                     $result->setValue(PHP_EOL . str_repeat("\t", 2) . preg_replace('/([\r\n]+)/', "$1\t", $ret));
                     $result->setAttribute('status', ($isCacheValid === true ? 'fresh' : 'stale'));
                     $result->setAttribute('cache-id', $cache_id);
@@ -782,6 +973,47 @@ class RemoteDatasource extends DataSource implements iDatasource
         $result->setAttribute('url', General::sanitize($this->dsParamURL));
 
         return $result;
+    }
+
+    /**
+     * Using the data return, apply any XPath expressions to generate
+     * parameters for this datasource.
+     *
+     * @param string $data
+     * @param array $param_pool
+     */
+    public function processOutputParameters($data, &$param_pool)
+    {
+        $dom = new DOMDocument('1.0', 'utf-8');
+        $dom->loadXML($data, LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | defined('LIBXML_COMPACT') ? LIBXML_COMPACT : 0);
+        $xpath = new DOMXPath($dom);
+        $key = 'ds-' . $this->dsParamROOTELEMENT;
+
+        // Apply the namespaces to XPath
+        if (isset($this->dsParamNAMESPACES) && is_array($this->dsParamNAMESPACES)) {
+            foreach ($this->dsParamNAMESPACES as $name => $uri) {
+                var_dump($name, $uri);
+                $xpath->registerNamespace($name, $uri);
+            }
+        }
+
+        // Query each expression for the value
+        foreach ($this->dsParamOUTPUTPARAM as $name => $expression) {
+            $matches = [];
+
+            // All transform formatters (except XML) will transform the result into
+            // a core 'data' node, so lets append this to the start of the expression
+            if ($this->dsParamFORMAT !== 'xml') {
+                $expression = '/data' . $expression;
+            }
+
+            foreach($xpath->evaluate($expression) as $match) {
+                $matches[] = $match->nodeValue;
+            }
+
+            $param_key = $key .  '.' . str_replace(':', '-', $name);
+            $param_pool[$param_key] = $matches;
+        }
     }
 
     /**

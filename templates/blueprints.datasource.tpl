@@ -13,6 +13,8 @@ class datasource<!-- CLASS NAME --> extends RemoteDatasource {
 
     <!-- NAMESPACES -->
 
+    <!-- PARAMOUTPUT -->
+
     public function __construct($env=NULL, $process_params=true)
     {
         parent::__construct($env, $process_params);
