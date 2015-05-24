@@ -4,6 +4,7 @@
 	<description>A datasource that consumes XML, JSON, CSV or TEXT content.</description>
 	<repo type="github">https://github.com/symphonycms/remote_datasource</repo>
 	<url type="issues">https://github.com/symphonycms/remote_datasource/issues</url>
+	<url type="discuss">http://www.getsymphony.com/discuss/thread/110527/</url>
 	<authors>
 		<author>
 			<name github="symphonycms" symphony="team">Symphony Team</name>
