@@ -953,7 +953,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                     }
 
                     if (!empty($this->dsParamOUTPUTPARAM)) {
-                        $this->processOutputParameters($ret, $param_pool);
+                        $this->processOutputParameters($data, $param_pool);
                     }
 
                     $result->setValue(PHP_EOL . str_repeat("\t", 2) . preg_replace('/([\r\n]+)/', "$1\t", $ret));
@@ -992,7 +992,6 @@ class RemoteDatasource extends DataSource implements iDatasource
         // Apply the namespaces to XPath
         if (isset($this->dsParamNAMESPACES) && is_array($this->dsParamNAMESPACES)) {
             foreach ($this->dsParamNAMESPACES as $name => $uri) {
-                var_dump($name, $uri);
                 $xpath->registerNamespace($name, $uri);
             }
         }
@@ -1001,11 +1000,9 @@ class RemoteDatasource extends DataSource implements iDatasource
         foreach ($this->dsParamOUTPUTPARAM as $name => $expression) {
             $matches = [];
 
-            // All transform formatters (except XML) will transform the result into
-            // a core 'data' node, so lets append this to the start of the expression
-            if ($this->dsParamFORMAT !== 'xml') {
-                $expression = '/data' . $expression;
-            }
+            // As this is passed the full data node, prepend the DS Xpath
+            // to the expression.
+            $expression = $this->dsParamXPATH . $expression;
 
             foreach($xpath->evaluate($expression) as $match) {
                 $matches[] = $match->nodeValue;

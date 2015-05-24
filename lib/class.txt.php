@@ -12,7 +12,7 @@ Class TXTFormatter implements Transformer
 
     public function transform($data)
     {
-        $txtElement = new XMLElement('entry');
+        $txtElement = new XMLElement('data');
         $txtElement->setValue(General::wrapInCDATA($data));
         $data = $txtElement->generate();
 
