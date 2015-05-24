@@ -330,6 +330,9 @@ class RemoteDatasource extends DataSource implements iDatasource
             $fieldset->appendChild($label);
         }
 
+        // Namespaces
+        static::addNamespaces($fieldset, $errors, $settings, $handle);
+
         // Included Elements
         $label = Widget::Label(__('Included Elements'));
 
@@ -349,28 +352,8 @@ class RemoteDatasource extends DataSource implements iDatasource
             $fieldset->appendChild($label);
         }
 
-        // Timeout
         $group = new XMLElement('div', null, array('class' => 'three columns'));
         $fieldset->appendChild($group);
-
-        $label = Widget::Label(__('Timeout'));
-        $label->setAttribute('class', 'column');
-
-        $help = new XMLElement('i', __('in seconds'));
-        $label->appendChild($help);
-
-        $timeout_time = isset($settings[self::getClass()]['timeout'])
-            ? max(1, intval($settings[self::getClass()]['timeout']))
-            : 6;
-
-        $label->appendChild(
-            Widget::Input('fields[' . self::getClass() . '][timeout]', (string) $timeout_time, 'text')
-        );
-        if (isset($errors[self::getClass()]['timeout'])) {
-            $group->appendChild(Widget::Error($label, $errors[self::getClass()]['timeout']));
-        } else {
-            $group->appendChild($label);
-        }
 
         // Caching
         $label = Widget::Label(__('Cache expiration'));
@@ -387,6 +370,26 @@ class RemoteDatasource extends DataSource implements iDatasource
         $label->appendChild($input);
         if (isset($errors[self::getClass()]['cache'])) {
             $group->appendChild(Widget::Error($label, $errors[self::getClass()]['cache']));
+        } else {
+            $group->appendChild($label);
+        }
+
+        // Timeout
+        $label = Widget::Label(__('Timeout'));
+        $label->setAttribute('class', 'column');
+
+        $help = new XMLElement('i', __('in seconds'));
+        $label->appendChild($help);
+
+        $timeout_time = isset($settings[self::getClass()]['timeout'])
+            ? max(1, intval($settings[self::getClass()]['timeout']))
+            : 6;
+
+        $label->appendChild(
+            Widget::Input('fields[' . self::getClass() . '][timeout]', (string) $timeout_time, 'text')
+        );
+        if (isset($errors[self::getClass()]['timeout'])) {
+            $group->appendChild(Widget::Error($label, $errors[self::getClass()]['timeout']));
         } else {
             $group->appendChild($label);
         }
@@ -415,18 +418,32 @@ class RemoteDatasource extends DataSource implements iDatasource
             $group->appendChild($label);
         }
 
-        // Namespaces
-        static::addNamespaces($fieldset, $errors, $settings, $handle);
-
-        // Output Parameters
-        static::addOutputParameters($fieldset, $errors, $settings, $handle);
-
         // Check for existing Cache objects
         if (isset($cache_id)) {
             static::buildCacheInformation($fieldset, $cache, $cache_id);
         }
 
         $wrapper->appendChild($fieldset);
+
+        // Parameters
+        $fieldset = new XMLElement('fieldset');
+        $fieldset->setAttribute('class', 'settings contextual ' . __CLASS__);
+        $fieldset->setAttribute('data-context', Lang::createHandle(self::getName()));
+        $fieldset->appendChild(new XMLElement('legend', 'Parameters'));
+        $p = new XMLElement(
+            'p',
+            __('Appended to datasource handle, eg. %s', array(
+                '<code>$ds-handle.parameter-name</code>'
+            ))
+        );
+        $p->setAttribute('class', 'help');
+        $fieldset->appendChild($p);
+
+        // Output Parameters
+        static::addOutputParameters($fieldset, $errors, $settings, $handle);
+
+        $wrapper->appendChild($fieldset);
+
     }
 
     /**
@@ -549,17 +566,13 @@ class RemoteDatasource extends DataSource implements iDatasource
             'id' => 'xml',
             'class' => 'pickable'
         ));
-        $p = new XMLElement('p', __('Output Parameters'));
-        $p->appendChild(new XMLElement('i', __('optional')));
-        $p->setAttribute('class', 'label');
-        $div->appendChild($p);
 
         $frame = new XMLElement('div', null, array('class' => 'frame filters-duplicator'));
         $frame->setAttribute('data-interactive', 'data-interactive');
 
         $ol = new XMLElement('ol');
-        $ol->setAttribute('data-add', __('Add output parameter'));
-        $ol->setAttribute('data-remove', __('Remove output parameter'));
+        $ol->setAttribute('data-add', __('Add parameter'));
+        $ol->setAttribute('data-remove', __('Remove parameter'));
 
         if (isset($settings[self::getClass()], $settings[self::getClass()]['paramoutput']) && is_array($settings[self::getClass()]['paramoutput']) && !empty($settings[self::getClass()]['paramoutput'])) {
             $ii = 0;
@@ -617,7 +630,7 @@ class RemoteDatasource extends DataSource implements iDatasource
         // Header
         $header = new XMLElement('header');
         $header->appendChild(
-            new XMLElement('h4', __('Output Parameter'))
+            new XMLElement('h4', __('Parameter'))
         );
         $li->appendChild($header);
 
