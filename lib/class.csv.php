@@ -33,6 +33,14 @@ class CSVFormatter implements Transformer
     {
         $headers = array();
 
+        // Get CSV settings
+        $settings = array(
+            'csv-delimiter' => ',',
+            'csv-enclosure' => '"',
+            'csv-escape' => '\\'
+        );
+        $settings = array_merge($settings, (array) Symphony::Configuration()->get('remote_datasource'));
+
         // DOMDocument
         $doc = new DOMDocument('1.0', 'utf-8');
         $doc->formatOutput = true;
@@ -46,14 +54,14 @@ class CSVFormatter implements Transformer
             }
 
             if ($i == 0) {
-                foreach (str_getcsv($row) as $i => $head) {
+                foreach (str_getcsv($row, $settings['csv-delimiter'], $settings['csv-enclosure'], $settings['csv-escape']) as $i => $head) {
                     if (class_exists('Lang')) {
                         $head = Lang::createHandle($head);
                     }
                     $headers[] = $head;
                 }
             } else {
-                self::addRow($doc, $root, str_getcsv($row), $headers);
+                self::addRow($doc, $root, str_getcsv($row, $settings['csv-delimiter'], $settings['csv-enclosure'], $settings['csv-escape']), $headers);
             }
         }
 
