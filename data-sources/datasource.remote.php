@@ -790,7 +790,7 @@ class RemoteDatasource extends DataSource implements iDatasource
         if (empty($this->_env)) {
             $this->_env['env']['pool'] = array(
                 'root' => URL,
-                'workspace' => WORKSPACE
+                'workspace' => URL . '/workspace'
             );
         }
 

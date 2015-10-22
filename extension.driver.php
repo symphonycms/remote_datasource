@@ -59,4 +59,18 @@ class Extension_Remote_Datasource extends Extension
 
         $context['wrapper']->appendChild($label);
     }
+
+    public function install()
+    {
+        Symphony::Configuration()->set('csv-delimiter', ',', 'remote_datasource');
+        Symphony::Configuration()->set('csv-enclosure', '"', 'remote_datasource');
+        Symphony::Configuration()->set('csv-escape', '\\', 'remote_datasource');
+        Symphony::Configuration()->write();
+    }
+
+    public function uninstall()
+    {
+        Symphony::Configuration()->remove('remote_datasource');
+    }
+    
 }
