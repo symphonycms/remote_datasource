@@ -11,6 +11,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="2.2.1" date="2015-12-01" min="2.4" max="2.6.x">
+			- Fix for php 5.3 compat
+		</release>
 		<release version="2.2.0" date="2015-06-24" min="2.4" max="2.6.x">
 			- Make CSV style configurable.
 			- Fix `{$workspace}` path
