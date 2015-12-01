@@ -1011,7 +1011,7 @@ class RemoteDatasource extends DataSource implements iDatasource
 
         // Query each expression for the value
         foreach ($this->dsParamOUTPUTPARAM as $name => $expression) {
-            $matches = [];
+            $matches = array();
 
             // As this is passed the full data node, prepend the DS Xpath
             // to the expression.
