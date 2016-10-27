@@ -864,7 +864,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                             $result->appendChild(
                                 new XMLElement(
                                     'error',
-                                    sprintf('Request timed out. %d second limit reached.', $timeout)
+                                    sprintf('Request timed out. %d second limit reached.', $this->dsParamTIMEOUT)
                                 )
                             );
                         } else {
