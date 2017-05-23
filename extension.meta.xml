@@ -11,6 +11,9 @@
     </author>
   </authors>
   <releases>
+    <release version="2.2.2" date="2017-05-19" min="2.4" max="4.x.x" php-min="5.6.x" php-max="7.x.x">
+        - PHP7 Compatibility
+    </release>
     <release version="2.4.0" date="2019-03-01" min="2.6" max="3.x.x">
       - Pass namespace to the cacheable instance
     </release>
