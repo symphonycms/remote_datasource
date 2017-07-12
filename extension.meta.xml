@@ -4,13 +4,17 @@
 	<description>A datasource that consumes XML, JSON, CSV or TEXT content.</description>
 	<repo type="github">https://github.com/symphonycms/remote_datasource</repo>
 	<url type="issues">https://github.com/symphonycms/remote_datasource/issues</url>
-	<url type="discuss">http://www.getsymphony.com/discuss/thread/110527/</url>
+	<url type="discuss">https://www.getsymphony.com/discuss/thread/110527/</url>
 	<authors>
 		<author>
 			<name github="symphonycms" symphony="team">Symphony Team</name>
 		</author>
 	</authors>
 	<releases>
+		<release version="2.3.0" date="2017-07-12" min="2.4" max="3.x.x">
+			- Bug fixes
+			- Added compatibility with Symphony 2.7.x and 3.x.x
+		</release>
 		<release version="2.2.1" date="2015-12-01" min="2.4" max="2.6.x">
 			- Fix for php 5.3 compat
 		</release>
