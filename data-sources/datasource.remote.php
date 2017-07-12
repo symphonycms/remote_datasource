@@ -136,7 +136,9 @@ class RemoteDatasource extends DataSource implements iDatasource
             list($data, $info) = self::fetch($url, $format, $timeout);
 
             // 28 is CURLE_OPERATION_TIMEOUTED
-            if (isset($info['curl_error']) && $info['curl_error'] == 28) {
+            $isTimeout = (isset($info['curl_errno']) && $info['curl_errno'] === 28) ||
+                         (isset($info['curl_error']) && $info['curl_error'] === 28);
+            if ($isTimeout) {
                 return __('Request timed out. %d second limit reached.', array($timeout));
             } elseif ($data === false || $info['http_code'] != 200) {
                 return __('Failed to load URL, status code %d was returned.', array($info['http_code']));
