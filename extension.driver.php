@@ -18,7 +18,7 @@ class Extension_Remote_Datasource extends Extension
         return true;
     }
 
-    public static function providerOf($type = null)
+    public function providerOf($type = null)
     {
         self::registerProviders();
 
@@ -72,5 +72,5 @@ class Extension_Remote_Datasource extends Extension
     {
         Symphony::Configuration()->remove('remote_datasource');
     }
-    
+
 }
