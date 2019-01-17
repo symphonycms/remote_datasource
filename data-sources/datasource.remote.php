@@ -6,7 +6,7 @@ require_once FACE . '/interface.datasource.php';
 class RemoteDatasource extends DataSource implements iDatasource
 {
 
-    private static $transformer = null;
+    private static $transformer = array();
     private static $url_result = null;
     private static $cacheable = null;
 
@@ -1089,14 +1089,14 @@ class RemoteDatasource extends DataSource implements iDatasource
     {
         $transformer = EXTENSIONS . '/remote_datasource/lib/class.' . strtolower($format) . '.php';
 
-        if (!isset(self::$transformer)) {
+        if (!isset(self::$transformer[$format])) {
             if (file_exists($transformer)) {
                 $classname = require_once $transformer;
-                self::$transformer = new $classname;
+                self::$transformer[$format] = new $classname;
             }
         }
 
-        return self::$transformer;
+        return self::$transformer[$format];
     }
 }
 
