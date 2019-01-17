@@ -11,7 +11,10 @@
     </author>
   </authors>
   <releases>
-    <release version="2.3.1" date="2019-01-16" min="2.4" max="3.x.x">
+    <release version="2.4.0" date="2019-02-27" min="2.6" max="3.x.x">
+      - Pass namespace to the cacheable instance
+    </release>
+    <release version="2.3.1" date="2019-02-27" min="2.4" max="3.x.x">
       - [#37](https://github.com/symphonycms/remote_datasource/issues/37) Fix error when multiple datasources are added to the same page with different formats.
     </release>
     <release version="2.3.0" date="2017-07-12" min="2.4" max="3.x.x">

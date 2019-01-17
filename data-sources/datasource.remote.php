@@ -282,6 +282,16 @@ class RemoteDatasource extends DataSource implements iDatasource
         }
     }
 
+    /**
+     * Returns an instance of the cache for the Remote Datasource
+     *
+     * @since Remote Datasource 2.4.0
+     * @return Cacheable
+     */
+    public static function getCache() {
+      return Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
+    }
+
 /*-------------------------------------------------------------------------
     Editor
 -------------------------------------------------------------------------*/
@@ -289,13 +299,13 @@ class RemoteDatasource extends DataSource implements iDatasource
     public static function buildEditor(XMLElement $wrapper, array &$errors = array(), array $settings = null, $handle = null)
     {
         if (!is_null($handle) && isset($settings[self::getClass()])) {
-            $cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
+            $cache = self::getCache();
             $cache_id = self::buildCacheID($settings[self::getClass()]);
         }
 
         // If `clear_cache` is set, clear it..
         if (isset($cache_id) && in_array('clear_cache', Administration::instance()->Page->getContext())) {
-            $cache->delete($cache_id);
+            $cache->delete($cache_id, $handle);
             Administration::instance()->Page->pageAlert(
                 __('Data source cache cleared at %s.', array(Widget::Time()->generate()))
                 . '<a href="' . SYMPHONY_URL . '/blueprints/datasources/" accesskey="a">'
@@ -762,10 +772,9 @@ class RemoteDatasource extends DataSource implements iDatasource
                 'namespaces' => $namespaces,
                 'paramoutput' => $outputparams
             ));
-            $cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
-            $cache_id = self::buildCacheID($settings);
             $data = self::transformResult(self::$url_result, $settings['format']);
-            $cache->write($cache_id, $data, $settings['cache']);
+            $cache_id = self::buildCacheID($settings);
+            self::getCache()->write($cache_id, $data, $settings['cache'], $params['rootelement']);
         }
 
         return sprintf(
@@ -838,8 +847,7 @@ class RemoteDatasource extends DataSource implements iDatasource
 
             // Check for an existing Cache for this Datasource
             $cache_id = self::buildCacheID($this);
-            $cache = Symphony::ExtensionManager()->getCacheProvider('remotedatasource');
-            $cachedData = $cache->read($cache_id);
+            $cachedData = self::getCache()->read($cache_id, $this->dsParamROOTELEMENT);
             $writeToCache = null;
             $isCacheValid = true;
             $creation = DateTimeObj::get('c');
@@ -964,7 +972,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                     $this->_force_empty_result = true;
                 } else {
                     if ($this->dsParamCACHE > 0 && $writeToCache) {
-                        $cache->write($cache_id, $data, $this->dsParamCACHE);
+                        self::getCache()->write($cache_id, $data, $this->dsParamCACHE, $this->dsParamROOTELEMENT);
                     }
 
                     if (!empty($this->dsParamOUTPUTPARAM)) {
