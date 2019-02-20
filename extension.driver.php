@@ -5,7 +5,7 @@ require_once EXTENSIONS . '/remote_datasource/data-sources/datasource.remote.php
 class Extension_Remote_Datasource extends Extension
 {
 
-    private static $provides = array();
+    protected static $provides = array();
 
     public static function registerProviders()
     {
