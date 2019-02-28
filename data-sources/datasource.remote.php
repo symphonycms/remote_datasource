@@ -982,6 +982,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                     $result->setValue(PHP_EOL . str_repeat("\t", 2) . preg_replace('/([\r\n]+)/', "$1\t", $ret));
                     $result->setAttribute('status', ($isCacheValid === true ? 'fresh' : 'stale'));
                     $result->setAttribute('cache-id', $cache_id);
+                    $result->setAttribute('cache-namespace', $this->dsParamROOTELEMENT);
                     $result->setAttribute('creation', $creation);
                 }
             }
