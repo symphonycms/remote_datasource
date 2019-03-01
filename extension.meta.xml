@@ -11,7 +11,7 @@
     </author>
   </authors>
   <releases>
-    <release version="2.4.0" date="2019-02-27" min="2.6" max="3.x.x">
+    <release version="2.4.0" date="2019-03-01" min="2.6" max="3.x.x">
       - Pass namespace to the cacheable instance
     </release>
     <release version="2.3.1" date="2019-02-27" min="2.4" max="3.x.x">
