@@ -851,13 +851,15 @@ class RemoteDatasource extends DataSource implements iDatasource
             $writeToCache = null;
             $isCacheValid = true;
             $creation = DateTimeObj::get('c');
+            $mutexRetrySleepTime = 1;		//in secondes
+            $mutexRetryCount = 50;
 
             // Execute if the cache doesn't exist, or if it is old.
             if (
                 (!is_array($cachedData) || empty($cachedData)) // There's no cache.
                 || (time() - $cachedData['creation']) > ($this->dsParamCACHE * 60) // The cache is old.
             ) {
-                if (Mutex::acquire($cache_id, $this->dsParamTIMEOUT, TMP)) {
+                if (Mutex::acquireOrWait($cache_id, $this->dsParamTIMEOUT, TMP, $mutexRetryCount, $mutexRetrySleepTime)) {
                     list($data, $info) = self::fetch($this->dsParamURL, $this->dsParamFORMAT, $this->dsParamTIMEOUT);
                     Mutex::release($cache_id, TMP);
                     $writeToCache = true;
@@ -924,6 +926,7 @@ class RemoteDatasource extends DataSource implements iDatasource
                     $result->appendChild(
                         new XMLElement('error', __('The %s class failed to acquire a lock.', array('<code>Mutex</code>')))
                     );
+                    Symphony::log()->pushToLog(__('The %s class failed to acquire a mutex lock after %s retry.', array('<code>datasource.remote</code>', $mutexRetryCount)), E_ERROR, true);
                 }
 
             // The cache is good, use it!
