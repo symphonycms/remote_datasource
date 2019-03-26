@@ -15,7 +15,7 @@ class datasource<!-- CLASS NAME --> extends RemoteDatasource {
 
     <!-- PARAMOUTPUT -->
 
-    public function __construct($env=NULL, $process_params=true)
+    public function __construct($env = null, $process_params = true)
     {
         parent::__construct($env, $process_params);
         $this->_dependencies = array(<!-- DS DEPENDENCY LIST -->);
