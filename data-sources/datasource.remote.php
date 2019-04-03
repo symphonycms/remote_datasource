@@ -986,6 +986,8 @@ class RemoteDatasource extends DataSource implements iDatasource
                     $result->setAttribute('creation', $creation);
                 }
             }
+        } catch (FrontendPageNotFoundException $e) {
+            throw $e;
         } catch (Exception $e) {
             $result->appendChild(new XMLElement('error', $e->getMessage()));
         }
