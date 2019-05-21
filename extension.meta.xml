@@ -11,6 +11,9 @@
     </author>
   </authors>
   <releases>
+    <release version="2.5.0" date="2019-05-22" min="2.6" max="3.x.x">
+      - Handle 404 properly when the Exception in thrown from execute
+    </release>
     <release version="2.4.0" date="2019-03-01" min="2.6" max="3.x.x">
       - Pass namespace to the cacheable instance
     </release>
