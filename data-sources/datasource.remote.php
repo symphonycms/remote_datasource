@@ -66,8 +66,10 @@ class RemoteDatasource extends DataSource implements iDatasource
      * @since Remote Datasource 2.0
      * @param string $data
      *  the parsed xml string data returned by the Gateway by reference
+     * @param array $param_pool
+     *  the pool of parameters
      */
-    public function exposeData(&$data)
+    public function exposeData(&$data, array &$param_pool = null)
     {
 
     }
@@ -933,7 +935,7 @@ class RemoteDatasource extends DataSource implements iDatasource
             }
 
             // Visit the data
-            $this->exposeData($data);
+            $this->exposeData($data, $param_pool);
 
             // If `$writeToCache` is set to false, invalidate the old cache if it existed.
             if (is_array($cachedData) && !empty($cachedData) && $writeToCache === false) {
